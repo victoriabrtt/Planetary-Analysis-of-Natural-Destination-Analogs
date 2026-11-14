@@ -1,0 +1,4 @@
+# Pipeline de precálculo (offline; no va al contenedor)
+-r requirements.txt
+rasterio>=1.3.10
+requests>=2.31

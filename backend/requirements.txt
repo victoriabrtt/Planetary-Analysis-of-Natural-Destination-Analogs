@@ -1,0 +1,4 @@
+# API (lo que corre en Cloud Run)
+fastapi>=0.115
+uvicorn[standard]>=0.30
+numpy>=1.26
