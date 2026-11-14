@@ -22,12 +22,12 @@ INDEX_DIR = Path(__file__).resolve().parents[1] / "data" / "index"
 # key → metadatos. `tol` es la tolerancia física absoluta (cuánta diferencia cuenta como "lejos").
 DIMENSIONS: dict[str, dict] = {
     "terrain": {
-        "name": "Terreno / pendiente",
+        "name": "Pendiente",
         "short": "Pendiente",
         "unit": "°",
         "tol": 10.0,
         "decimals": 1,
-        "hint": "Pendiente media en la celda (gradiente a ~1,85 km)",
+        "hint": "Inclinación media del terreno",
     },
     "roughness": {
         "name": "Rugosidad",
@@ -35,23 +35,23 @@ DIMENSIONS: dict[str, dict] = {
         "unit": "m",
         "tol": 120.0,
         "decimals": 0,
-        "hint": "Desvío estándar de la altura respecto del plano de la celda",
+        "hint": "Cuánto sube y baja el terreno alrededor de su inclinación",
     },
     "relief": {
-        "name": "Relieve local",
+        "name": "Relieve",
         "short": "Relieve",
         "unit": "m",
         "tol": 400.0,
         "decimals": 0,
-        "hint": "Altura máxima − mínima dentro de la celda",
+        "hint": "Desnivel entre el punto más alto y el más bajo de la zona",
     },
     "illum": {
-        "name": "Iluminación (incid.)",
+        "name": "Iluminación",
         "short": "Iluminación",
         "unit": "°",
         "tol": 18.0,
         "decimals": 0,
-        "hint": "Incidencia solar ≈ |latitud| (90° = sol rasante)",
+        "hint": "Ángulo del sol al mediodía (90° = sol rasante, como en los polos)",
     },
 }
 
@@ -71,7 +71,11 @@ SNAP_MAX_KM = 250.0  # si el punto cae en una celda inválida (océano), se busc
 
 
 class PointError(ValueError):
-    """El punto pedido no tiene datos (ej. océano en la Tierra)."""
+    """El punto pedido no tiene datos (ej. océano en la Tierra). `nearest` = celda válida más cercana."""
+
+    def __init__(self, message: str, nearest: dict | None = None):
+        super().__init__(message)
+        self.nearest = nearest
 
 
 @dataclass
@@ -131,9 +135,12 @@ class BodyIndex:
         d = self.dist_km(lat, lon)
         row = int(np.argmin(d))
         if d[row] > SNAP_MAX_KM:
-            where = "en el océano" if self.body == "earth" else "sin datos"
+            where = "cae en el océano" if self.body == "earth" else "no tiene datos de elevación"
+            km = float(d[row])
             raise PointError(
-                f"El punto ({lat:.2f}, {lon:.2f}) está {where}: la celda con datos más cercana queda a {d[row]:.0f} km."
+                f"Ese punto ({fmt_coord(lat, lon)}) {where}: no hay terreno para comparar. "
+                f"El punto con datos más cercano está a {f'{km:,.0f}'.replace(',', '.')} km.",
+                nearest={"lat": round(float(self.lat[row]), 3), "lon": round(float(self.lon[row]), 3), "km": round(km)},
             )
         return row
 
@@ -200,23 +207,36 @@ class Engine:
             la, lo = float(tgt.lat[row]), float(tgt.lon[row])
             return {"name": self.site_name(target_body, row, la, lo), "lat": round(la, 3), "lon": round(lo, 3)}
 
+        def rounded_pair(d: str, a: float, b: float) -> tuple[float, float, float]:
+            """Valores redondeados como se muestran, y la diferencia ENTRE ESOS valores
+            (si no, 18° contra 19° mostraría una diferencia de 0°)."""
+            dec = DIMENSIONS[d]["decimals"]
+            ra, rb = round(a, dec), round(b, dec)
+            return ra, rb, round(abs(ra - rb), dec)
+
         per_dim = {}
         for j, d in enumerate(dims):
             # Mejor por dimensión; entre empates (pasa mucho con iluminación) gana el de mejor global.
             best = int(np.argmax(C[:, j] + 1e-4 * overall))
             col = tgt.dims.index(d)
-            m = float(tgt.vals[best, col])
-            dec = DIMENSIONS[d]["decimals"]
+            rs, rm, rd = rounded_pair(d, src[d], float(tgt.vals[best, col]))
             per_dim[d] = {
                 "site": site(best),
                 "score": round(float(C[best, j]), 4),
-                "src": round(src[d], dec),
-                "match": round(m, dec),
-                "diff": round(abs(src[d] - m), dec),
+                "src": rs,
+                "match": rm,
+                "diff": rd,
                 "tol": DIMENSIONS[d]["tol"],
             }
 
         ranking = self._diverse_top(tgt, overall, max(1, top_n))
+        win = ranking[0]
+        # Extensión: cómo le va al ganador global en cada dimensión (lo que muestran las cards y
+        # "Dónde se rompe"); perDim sigue siendo el mejor análogo por dimensión, como pide el contrato.
+        winner_dims = {}
+        for j, d in enumerate(dims):
+            _, wm, wd = rounded_pair(d, src[d], float(tgt.vals[win, tgt.dims.index(d)]))
+            winner_dims[d] = {"match": wm, "diff": wd, "score": round(float(C[win, j]), 4)}
         return {
             "source": {
                 "body": source_body,
@@ -225,7 +245,7 @@ class Engine:
                 "name": self.source_name(source_body, lat, lon)
                 or self.site_name(source_body, srow, float(src_idx.lat[srow]), float(src_idx.lon[srow])),
             },
-            "overall": {"site": site(ranking[0]), "score": round(float(overall[ranking[0]]), 4)},
+            "overall": {"site": site(win), "score": round(float(overall[win]), 4), "perDim": winner_dims},
             "perDim": per_dim,
             "caveats": caveats(source_body, target_body, src_idx.cell_km),
             "ranking": [{"site": site(r), "score": round(float(overall[r]), 4)} for r in ranking],

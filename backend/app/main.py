@@ -74,7 +74,7 @@ def match(req: MatchRequest) -> dict:
     try:
         return engine().match(req.source_body, req.lat, lon, req.target_body, req.top_n, req.weights)
     except PointError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+        raise HTTPException(status_code=422, detail={"message": str(e), "nearest": e.nearest}) from e
 
 
 # ── Front estático (mismo origen en producción) ──

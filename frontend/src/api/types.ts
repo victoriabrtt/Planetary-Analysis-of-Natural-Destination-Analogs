@@ -32,7 +32,12 @@ export interface DimMatch {
 
 export interface MatchResponse {
   source: { body: Body; lat: number; lon: number; /** opcional: nombre del sitio si es conocido */ name?: string }
-  overall: { site: SiteRef; score: number }
+  overall: {
+    site: SiteRef
+    score: number
+    /** Opcional (extensión): cómo le va al ganador global en cada dimensión. */
+    perDim?: Record<DimKey, { match: number; diff: number; score: number }>
+  }
   perDim: Record<DimKey, DimMatch>
   caveats: string[]
   /** Opcional (extensión): top_n candidatos por cercanía global. La UI funciona sin esto. */

@@ -14,7 +14,7 @@ export default function ProfileSelector() {
   })
 
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="flex flex-col gap-3">
       <div>
         <h2 id="resultados" tabIndex={-1} className="display scroll-mt-6 text-[24px]">
           Perfil de misión
@@ -34,7 +34,7 @@ export default function ProfileSelector() {
         ariaLabel="Perfil de misión"
         value={profileId}
         onChange={setProfile}
-        className={`grid w-full md:inline-flex md:w-auto ${profiles.length === 4 ? 'grid-cols-[repeat(4,minmax(0,1fr))]' : 'grid-cols-[repeat(3,minmax(0,1fr))]'}`}
+        className={`grid w-full ${profiles.length === 4 ? 'grid-cols-[repeat(4,minmax(0,1fr))]' : 'grid-cols-[repeat(3,minmax(0,1fr))]'}`}
         options={profiles.map((x) => ({
           value: x.id,
           title: x.blurb,

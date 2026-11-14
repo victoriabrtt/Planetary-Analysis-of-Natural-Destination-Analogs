@@ -6,6 +6,15 @@ import type { MatchRequest, MatchResponse, MetaResponse } from './types'
 export const USE_MOCK = import.meta.env.VITE_API_MODE !== 'real'
 const API_BASE = import.meta.env.VITE_API_BASE ?? ''
 
+/** Error de la API con el punto con datos más cercano, si el backend lo informa (ej. océano). */
+export class ApiError extends Error {
+  nearest: { lat: number; lon: number; km: number } | null
+  constructor(message: string, nearest: ApiError['nearest'] = null) {
+    super(message)
+    this.nearest = nearest
+  }
+}
+
 export async function matchAnalogs(req: MatchRequest, signal?: AbortSignal): Promise<MatchResponse> {
   if (USE_MOCK) {
     // Mock con la forma exacta del contrato; calcula con el motor real en el cliente.
@@ -17,24 +26,25 @@ export async function matchAnalogs(req: MatchRequest, signal?: AbortSignal): Pro
     body: JSON.stringify(req),
     signal,
   })
-  if (!res.ok) throw new Error(await errorMessage(res))
+  if (!res.ok) throw await apiError(res)
   return res.json()
 }
 
 /** Dimensiones, tolerancias y perfiles que define el backend. En modo mock no se llama. */
 export async function fetchMeta(): Promise<MetaResponse> {
   const res = await fetch(`${API_BASE}/api/meta`)
-  if (!res.ok) throw new Error(await errorMessage(res))
+  if (!res.ok) throw await apiError(res)
   return res.json()
 }
 
-async function errorMessage(res: Response): Promise<string> {
+async function apiError(res: Response): Promise<ApiError> {
   const text = await res.text()
   try {
     const j = JSON.parse(text)
-    if (typeof j.detail === 'string') return j.detail
+    if (typeof j.detail === 'string') return new ApiError(j.detail)
+    if (j.detail?.message) return new ApiError(j.detail.message, j.detail.nearest ?? null)
   } catch {
     /* no es JSON */
   }
-  return `API ${res.status}: ${text.slice(0, 200)}`
+  return new ApiError(`No se pudo consultar el servidor (error ${res.status}). Probá de nuevo en un momento.`)
 }

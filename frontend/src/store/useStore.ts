@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { USE_MOCK, fetchMeta, matchAnalogs } from '../api/client'
-import type { MatchResponse } from '../api/types'
+import { ApiError, USE_MOCK, fetchMeta, matchAnalogs } from '../api/client'
+import type { MatchResponse, SiteRef } from '../api/types'
 import { EARTH, FAMOUS, type Body } from '../engine/data'
 import { DIMS, PROFILES, dimFromMeta, fallbackDim, profileWeights, type DimKey, type Dimension, type Profile } from '../engine/dimensions'
 
@@ -21,7 +21,11 @@ interface State {
   result: MatchResponse | null
   loading: boolean
   error: string | null
+  /** Punto con datos más cercano cuando el elegido no tiene (ej. océano). */
+  errorNearest: { lat: number; lon: number; km: number } | null
   hoveredDim: DimKey | null
+  /** Lugar del ranking que se está mirando en el globo destino (null = el ganador). */
+  inspect: SiteRef | null
   theme: Theme
   /** Catálogo activo: local (mock) o el que define el backend (GET /api/meta). */
   dims: Dimension[]
@@ -35,6 +39,7 @@ interface State {
   setProfile: (id: string) => void
   selectPoint: (lat: number, lon: number) => void
   setHoveredDim: (d: DimKey | null) => void
+  setInspect: (s: SiteRef | null) => void
   toggleTheme: () => void
   run: () => Promise<void>
 }
@@ -63,7 +68,9 @@ export const useStore = create<State>((set, get) => ({
   result: null,
   loading: false,
   error: null,
+  errorNearest: null,
   hoveredDim: null,
+  inspect: null,
   theme: initialTheme,
   dims: DIMS,
   profiles: PROFILES,
@@ -109,6 +116,7 @@ export const useStore = create<State>((set, get) => ({
     void get().run()
   },
   setHoveredDim: (hoveredDim) => set({ hoveredDim }),
+  setInspect: (inspect) => set({ inspect }),
   toggleTheme: () => {
     const theme: Theme = get().theme === 'dark' ? 'light' : 'dark'
     localStorage.setItem('theme', theme)
@@ -121,7 +129,7 @@ export const useStore = create<State>((set, get) => ({
     const id = ++reqId
     controller?.abort()
     controller = new AbortController()
-    set({ loading: true, error: null })
+    set({ loading: true, error: null, errorNearest: null, inspect: null })
     try {
       const result = await matchAnalogs(
         {
@@ -137,7 +145,12 @@ export const useStore = create<State>((set, get) => ({
       if (id === reqId) set({ result, loading: false })
     } catch (e) {
       if (id !== reqId || (e instanceof DOMException && e.name === 'AbortError')) return
-      set({ loading: false, result: null, error: e instanceof Error ? e.message : String(e) })
+      set({
+        loading: false,
+        result: null,
+        error: e instanceof Error ? e.message : String(e),
+        errorNearest: e instanceof ApiError ? e.nearest : null,
+      })
     }
   },
 }))

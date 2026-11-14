@@ -4,6 +4,7 @@ import type { Body } from '../engine/data'
 import type { DimKey } from '../engine/dimensions'
 import { createPolarGlobeMaterial } from '../lib/polarMaterial'
 import { useReducedMotion } from '../lib/useReducedMotion'
+import { useStore } from '../store/useStore'
 
 export type MarkerKind = 'famous' | 'selected' | 'overall' | 'dims' | 'origin'
 
@@ -60,10 +61,8 @@ function render(el: HTMLElement, m: Marker) {
         m.onClick?.()
       }
     : null
-  if (m.onClick) {
-    el.setAttribute('role', 'button')
-    el.setAttribute('aria-label', m.label ?? 'Marcador')
-  }
+  // Los sitios clickeables del globo están también como botones debajo: el marcador es un atajo visual.
+  el.setAttribute('aria-hidden', 'true')
   const cluster = (m.colors ?? []).length
     ? `<span class="gm-cluster">${(m.colors ?? [])
         .map((c, i) => `<i data-dim="${m.dims?.[i] ?? ''}" style="--c:${c}"></i>`)
@@ -205,6 +204,8 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
   }, [highlightDim, htmlData])
 
   const atm = ATMOS[body]
+  // En claro, la atmósfera se achica: un halo azul ancho sobre blanco se ve sucio
+  const light = useStore((s) => s.theme) === 'light'
 
   if (!HAS_WEBGL) return <StillGlobe body={body} label={ariaLabel} />
 
@@ -231,6 +232,7 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
           backgroundColor="rgba(0,0,0,0)"
           rendererConfig={{ antialias: true, alpha: true }}
           globeMaterial={material}
+          showGraticules
           globeCurvatureResolution={2}
           globeImageUrl={TEXTURE[body]}
           // Relieve solo en la Tierra (topografía real). Usar la textura de color como relieve
@@ -238,7 +240,7 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
           bumpImageUrl={body === 'earth' ? '/textures/earth-bump.webp' : null}
           showAtmosphere
           atmosphereColor={atm.color}
-          atmosphereAltitude={atm.alt}
+          atmosphereAltitude={light ? atm.alt * 0.45 : atm.alt}
           onGlobeReady={() => setReady(true)}
           onGlobeClick={onPick ? ({ lat, lng }) => onPick(lat, lng) : undefined}
           htmlElementsData={htmlData}

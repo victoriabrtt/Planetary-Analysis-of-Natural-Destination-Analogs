@@ -21,3 +21,8 @@ export function fmtCoord(lat: number, lon: number): string {
 }
 
 export const pct = (score: number) => Math.round(score * 100)
+
+/** El backend nombra con coordenadas las celdas sin nombre ("1,3°S 117,7°O"). */
+export const isUnnamed = (name: string) => /^\d+,\d°[NS] \d+,\d°[EO]$/.test(name.trim())
+/** Título legible para un lugar: las celdas sin nombre no repiten sus coordenadas como título. */
+export const placeTitle = (name: string) => (isUnnamed(name) ? 'Zona sin nombre oficial' : name)

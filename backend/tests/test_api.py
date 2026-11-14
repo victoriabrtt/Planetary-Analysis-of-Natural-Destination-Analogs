@@ -46,7 +46,14 @@ def test_contract_shape(client):
     j = r.json()
     assert set(j) >= {"source", "overall", "perDim", "caveats"}
     assert j["source"] == {**j["source"], "body": "moon", "lat": -89.9, "lon": 0.0}
-    assert set(j["overall"]) == {"site", "score"} and set(j["overall"]["site"]) == {"name", "lat", "lon"}
+    # Contrato: site + score. Extensión opcional: perDim del ganador global.
+    assert {"site", "score"} <= set(j["overall"]) <= {"site", "score", "perDim"}
+    assert set(j["overall"]["site"]) == {"name", "lat", "lon"}
+    for k, w in j["overall"]["perDim"].items():
+        dec = DIMENSIONS[k]["decimals"]
+        assert w["diff"] == pytest.approx(abs(j["perDim"][k]["src"] - w["match"]), abs=10**-dec / 2)
+        # el mejor por dimensión nunca es peor que el ganador global en esa dimensión
+        assert j["perDim"][k]["score"] >= w["score"] - 1e-9
     assert set(j["perDim"]) == set(DIMENSIONS)
     for k, m in j["perDim"].items():
         assert {"site", "score", "src", "match", "diff"} <= set(m)
@@ -72,7 +79,9 @@ def test_weights_change_winner(client):
 def test_ocean_is_masked(client):
     r = post(client, source_body="earth", lat=-30.0, lon=-140.0, target_body="moon")  # Pacífico sur
     assert r.status_code == 422
-    assert "océano" in r.json()["detail"]
+    detail = r.json()["detail"]
+    assert "océano" in detail["message"]
+    assert {"lat", "lon", "km"} <= set(detail["nearest"])
 
 
 @need("earth", "moon")

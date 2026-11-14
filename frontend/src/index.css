@@ -68,6 +68,22 @@ body {
   background: rgb(57 135 229 / 0.35);
 }
 
+/* Superficies del navegador con el estilo del sistema */
+html {
+  scrollbar-color: var(--line-strong) var(--bg);
+  accent-color: var(--color-accent);
+  caret-color: var(--color-accent);
+}
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+p,
+li {
+  text-wrap: pretty;
+}
+
 /* Cifras: monoespaciada con números tabulares */
 .tnum,
 .mono {

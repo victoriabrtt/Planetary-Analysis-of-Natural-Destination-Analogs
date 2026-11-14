@@ -1,4 +1,3 @@
-import { USE_MOCK } from '../api/client'
 import { useStore, type Mode, type OffBody } from '../store/useStore'
 import { MoonIcon, SunIcon } from './Icons'
 import Segmented from './Segmented'
@@ -24,12 +23,25 @@ export default function Header() {
   const toggleTheme = useStore((s) => s.toggleTheme)
   const other = body === 'moon' ? 'Luna' : 'Marte'
 
+  const themeButton = (
+    <button
+      onClick={toggleTheme}
+      aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      className="press grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-(--line) text-(--muted) transition-colors hover:border-(--line-strong) hover:text-(--fg)"
+    >
+      {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+    </button>
+  )
+
   return (
     <header className="-mx-4 flex flex-col gap-3 border-b border-(--line) px-4 pb-4 sm:-mx-6 sm:px-6 md:flex-row md:items-center md:justify-between lg:-mx-8 lg:px-8">
-      <div className="flex items-center gap-2.5">
-        <Mark />
-        <span className="text-[20px] font-medium tracking-[-0.03em]">Analog Matcher</span>
-        <span className="kicker hidden sm:inline">· NASA Space Apps 2026</span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <Mark />
+          <span className="text-[20px] font-medium tracking-[-0.03em]">Analog Matcher</span>
+          <span className="kicker hidden sm:inline">· NASA Space Apps 2026</span>
+        </div>
+        <div className="md:hidden">{themeButton}</div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -55,20 +67,7 @@ export default function Header() {
             { value: 'mars', label: 'Marte' },
           ]}
         />
-        <span
-          className="kicker hidden h-8 items-center gap-1.5 px-1 sm:inline-flex"
-          title={USE_MOCK ? 'Calculando en el navegador con el motor local' : 'Conectado a POST /api/match'}
-        >
-          <span className={`h-1.5 w-1.5 rounded-full ${USE_MOCK ? 'bg-moderate' : 'bg-strong'}`} aria-hidden />
-          {USE_MOCK ? 'Motor local' : 'API'}
-        </span>
-        <button
-          onClick={toggleTheme}
-          aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-          className="press grid h-9 w-9 place-items-center rounded-lg border border-(--line) text-(--muted) transition-colors hover:border-(--line-strong) hover:text-(--fg)"
-        >
-          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-        </button>
+        <div className="hidden md:block">{themeButton}</div>
       </div>
     </header>
   )

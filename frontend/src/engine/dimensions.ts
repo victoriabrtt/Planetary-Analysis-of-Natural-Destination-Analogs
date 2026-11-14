@@ -18,12 +18,12 @@ export interface Dimension {
 }
 
 export const DIMS: Dimension[] = [
-  { key: 'terrain', name: 'Terreno / pendiente', short: 'Terreno', unit: '°', tol: 12, range: [0, 35], decimals: 0, color: '#60a5fa', hint: 'Pendiente media del terreno' },
-  { key: 'roughness', name: 'Rugosidad', short: 'Rugosidad', unit: 'm', tol: 120, range: [20, 600], decimals: 0, color: '#94a3b8', hint: 'Relieve local (desvío de altura)' },
-  { key: 'composition', name: 'Composición (FeO)', short: 'FeO', unit: '% FeO', tol: 6, range: [4, 18], decimals: 1, color: '#f472b6', hint: 'Óxido de hierro en superficie' },
-  { key: 'craters', name: 'Densidad de cráteres', short: 'Cráteres', unit: '/Mkm²', tol: 40, range: [2, 160], decimals: 0, color: '#fde047', hint: 'Cráteres > 1 km por millón de km²' },
-  { key: 'illum', name: 'Iluminación (incid.)', short: 'Iluminación', unit: '°', tol: 18, range: [5, 88], decimals: 0, color: '#fdba74', hint: 'Ángulo de incidencia solar (90° = rasante)' },
-  { key: 'caves', name: 'Cuevas / tubos de lava', short: 'Cuevas', unit: 'idx', tol: 0.3, range: [0, 1], decimals: 2, color: '#2dd4bf', hint: 'Índice de probabilidad de cavidades' },
+  { key: 'terrain', name: 'Pendiente', short: 'Pendiente', unit: '°', tol: 12, range: [0, 35], decimals: 0, color: '#fda4af', hint: 'Inclinación media del terreno' },
+  { key: 'roughness', name: 'Rugosidad', short: 'Rugosidad', unit: 'm', tol: 120, range: [20, 600], decimals: 0, color: '#94a3b8', hint: 'Cuánto sube y baja el terreno alrededor de su inclinación' },
+  { key: 'composition', name: 'Hierro (FeO)', short: 'Hierro (FeO)', unit: '% FeO', tol: 6, range: [4, 18], decimals: 1, color: '#f472b6', hint: 'Óxido de hierro en superficie' },
+  { key: 'craters', name: 'Cráteres', short: 'Cráteres', unit: '/Mkm²', tol: 40, range: [2, 160], decimals: 0, color: '#fde047', hint: 'Cráteres > 1 km por millón de km²' },
+  { key: 'illum', name: 'Iluminación', short: 'Iluminación', unit: '°', tol: 18, range: [5, 88], decimals: 0, color: '#fdba74', hint: 'Ángulo del sol al mediodía (90° = sol rasante, como en los polos)' },
+  { key: 'caves', name: 'Cuevas', short: 'Cuevas', unit: 'idx', tol: 0.3, range: [0, 1], decimals: 2, color: '#2dd4bf', hint: 'Probabilidad de tubos de lava y cavidades (0 a 1)' },
 ]
 
 export const DIM_BY_KEY: Record<DimKey, Dimension> = Object.fromEntries(DIMS.map((d) => [d.key, d]))

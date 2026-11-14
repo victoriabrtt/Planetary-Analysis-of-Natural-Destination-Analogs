@@ -28,15 +28,25 @@ export default function Segmented<T extends string>({ id, value, options, onChan
       aria-label={ariaLabel}
       className={`relative inline-flex items-center gap-0.5 rounded-[10px] border border-(--line) bg-(--card) p-1 ${className}`}
     >
-      {options.map((o) => {
+      {options.map((o, i) => {
         const active = o.value === value
         return (
           <button
             key={o.value}
             role="radio"
             aria-checked={active}
+            tabIndex={active ? 0 : -1}
             title={o.title}
             onClick={() => onChange(o.value)}
+            onKeyDown={(e) => {
+              const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
+              if (!step) return
+              e.preventDefault()
+              const next = options[(i + step + options.length) % options.length]
+              onChange(next.value)
+              const group = e.currentTarget.parentElement
+              requestAnimationFrame(() => group?.querySelector<HTMLButtonElement>('[aria-checked="true"]')?.focus())
+            }}
             className={`press relative z-0 flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-colors ${pad} ${
               active ? 'text-(--bg)' : 'text-(--muted) hover:text-(--fg)'
             }`}
