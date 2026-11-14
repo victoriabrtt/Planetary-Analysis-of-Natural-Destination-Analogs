@@ -14,65 +14,60 @@ interface Props {
   weight: number
   sourceBody: Body
   targetBody: Body
-  index: number
 }
 
-export default function DimensionCard({ dim, m, weight, sourceBody, targetBody, index }: Props) {
+/** Una card por dimensión. No es un link, así que no se levanta: al pasar el mouse resalta su
+ *  marcador en el globo y la card cambia de fondo y borde. */
+export default function DimensionCard({ dim, m, weight, sourceBody, targetBody }: Props) {
   const setHoveredDim = useStore((s) => s.setHoveredDim)
   const v = VERDICTS[verdictOf(m.score)]
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ ...spring, delay: index * 0.04 }}
-      whileHover={{ y: -2 }}
-      onHoverStart={() => setHoveredDim(dim.key)}
-      onHoverEnd={() => setHoveredDim(null)}
+    <article
+      onMouseEnter={() => setHoveredDim(dim.key)}
+      onMouseLeave={() => setHoveredDim(null)}
       onFocus={() => setHoveredDim(dim.key)}
       onBlur={() => setHoveredDim(null)}
       tabIndex={0}
       aria-label={`${dim.name}: ${pct(m.score)}% de cercanía, ${v.label}. Mejor análogo ${m.site.name}.`}
-      className="glass group flex flex-col p-5 transition-[background,border-color] duration-300 hover:border-(--line-strong) hover:bg-(--glass-hover) focus-visible:rounded-[24px]"
+      className="card flex flex-col p-6 hover:border-(--line-strong) hover:bg-(--card-hover)"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: dim.color, boxShadow: `0 0 10px ${dim.color}` }} aria-hidden />
-          <h4 className="text-[15px] font-semibold tracking-[-0.015em]">{dim.name}</h4>
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: dim.color }} aria-hidden />
+          <h3 className="text-[17px] font-medium tracking-[-0.01em]">{dim.name}</h3>
         </div>
         <VerdictBadge score={m.score} />
       </div>
 
-      <div className="mt-3 flex items-baseline gap-2">
-        <span className="tnum text-[40px] font-semibold leading-none tracking-[-0.05em]">
+      <div className="mt-4 flex items-baseline gap-3">
+        <span className="figure text-[24px] leading-none">
           <AnimatedNumber value={pct(m.score)} />
-          <span className="text-xl text-(--muted)">%</span>
+          <span className="text-(--muted)">%</span>
         </span>
-        {weight !== 1 && (
-          <span className="tnum rounded-md bg-accent/15 px-1.5 py-0.5 text-[11px] font-semibold text-accent">peso ×{weight}</span>
-        )}
+        {weight !== 1 && <span className="tnum text-[13px] text-(--muted)">peso ×{weight}</span>}
       </div>
 
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-(--track)" role="presentation">
+      <div className="mt-4 h-1 overflow-hidden rounded-full bg-(--track)" role="presentation">
         <motion.div
           className="h-full rounded-full"
           style={{ background: v.color }}
-          initial={{ width: 0 }}
+          initial={false}
           animate={{ width: `${Math.max(2, pct(m.score))}%` }}
-          transition={{ ...valueSpring, delay: index * 0.04 }}
+          transition={valueSpring}
         />
       </div>
 
-      <div className="mt-4">
-        <div className="text-[11px] font-medium text-(--faint)">Mejor análogo</div>
+      <div className="mt-5">
+        <div className="kicker">Mejor análogo</div>
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={m.site.name}
-            initial={{ opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -8 }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
             transition={spring}
-            className="truncate text-[15px] font-medium tracking-[-0.01em]"
+            className="truncate text-[16px] font-medium"
             title={`${m.site.name} · ${fmtCoord(m.site.lat, m.site.lon)}`}
           >
             {m.site.name}
@@ -80,28 +75,22 @@ export default function DimensionCard({ dim, m, weight, sourceBody, targetBody, 
         </AnimatePresence>
       </div>
 
-      <dl className="tnum mt-4 grid grid-cols-[1fr_auto_1fr] items-end gap-2 rounded-2xl border border-(--line) bg-(--track) px-3.5 py-3 text-sm">
-        <div>
-          <dt className="text-[11px] text-(--faint)">{BODY_LABEL[sourceBody]}</dt>
-          <dd className="font-semibold">{fmtVal(dim, m.src)}</dd>
+      <dl className="mt-5 divide-y divide-(--line) border-t border-(--line) text-[15px]">
+        <div className="flex items-baseline justify-between py-2.5">
+          <dt className="kicker">{BODY_LABEL[sourceBody]}</dt>
+          <dd className="tnum">{fmtVal(dim, m.src)}</dd>
         </div>
-        <div className="pb-0.5 text-(--faint)" aria-hidden>
-          →
+        <div className="flex items-baseline justify-between py-2.5">
+          <dt className="kicker">{BODY_LABEL[targetBody]}</dt>
+          <dd className="tnum">{fmtVal(dim, m.match)}</dd>
         </div>
-        <div className="text-right">
-          <dt className="text-[11px] text-(--faint)">{BODY_LABEL[targetBody]}</dt>
-          <dd className="font-semibold">{fmtVal(dim, m.match)}</dd>
+        <div className="flex items-baseline justify-between py-2.5">
+          <dt className="kicker">Diferencia real</dt>
+          <dd className="tnum">
+            {fmtVal(dim, m.diff)} <span className="text-(--muted)">/ ±{fmtVal(dim, m.tol ?? dim.tol)}</span>
+          </dd>
         </div>
       </dl>
-
-      <div className="mt-3 flex items-center justify-between text-xs">
-        <span className="text-(--muted)">
-          Diferencia real <span className="tnum font-semibold text-(--fg)">Δ {fmtVal(dim, m.diff)}</span>
-        </span>
-        <span className="tnum text-(--faint)" title="Tolerancia física de la dimensión">
-          tol. ±{fmtVal(dim, m.tol ?? dim.tol)}
-        </span>
-      </div>
-    </motion.article>
+    </article>
   )
 }

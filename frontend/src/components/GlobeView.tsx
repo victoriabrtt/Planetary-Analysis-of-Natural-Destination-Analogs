@@ -92,6 +92,27 @@ function render(el: HTMLElement, m: Marker) {
   el.innerHTML = `<div class="gm-in">${html}</div>`
 }
 
+/** ¿Hay WebGL? Sin él, cada globo muestra una imagen fija del cuerpo en lugar de quedar vacío. */
+const HAS_WEBGL = (() => {
+  try {
+    const c = document.createElement('canvas')
+    return !!(c.getContext('webgl2') || c.getContext('webgl'))
+  } catch {
+    return false
+  }
+})()
+
+function StillGlobe({ body, label }: { body: Body; label: string }) {
+  return (
+    <div className="absolute inset-0 grid place-items-center" role="img" aria-label={`${label} (vista fija: este navegador no tiene WebGL)`}>
+      <div
+        className="aspect-square h-[62%] max-h-[340px] rounded-full border border-(--line)"
+        style={{ backgroundImage: `url(${TEXTURE[body]})`, backgroundSize: '200% 100%', backgroundPosition: 'center' }}
+      />
+    </div>
+  )
+}
+
 export default function GlobeView({ body, markers, rings = [], arcs = [], focus, highlightDim, onPick, ariaLabel }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const globeRef = useRef<GlobeMethods | undefined>(undefined)
@@ -184,6 +205,8 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
   }, [highlightDim, htmlData])
 
   const atm = ATMOS[body]
+
+  if (!HAS_WEBGL) return <StillGlobe body={body} label={ariaLabel} />
 
   return (
     <>

@@ -26,6 +26,8 @@ interface State {
   /** Catálogo activo: local (mock) o el que define el backend (GET /api/meta). */
   dims: Dimension[]
   profiles: Profile[]
+  /** Índices del backend (null en modo mock). */
+  bodies: Record<string, { cells: number; cell_km: number; source: string }> | null
 
   init: () => Promise<void>
   setMode: (m: Mode) => void
@@ -65,6 +67,7 @@ export const useStore = create<State>((set, get) => ({
   theme: initialTheme,
   dims: DIMS,
   profiles: PROFILES,
+  bodies: null,
 
   init: async () => {
     if (!USE_MOCK) {
@@ -74,6 +77,7 @@ export const useStore = create<State>((set, get) => ({
         set({
           dims: meta.dims.map(dimFromMeta),
           profiles,
+          bodies: meta.bodies ?? null,
           profileId: profiles.some((p) => p.id === get().profileId) ? get().profileId : profiles[0].id,
         })
       } catch (e) {

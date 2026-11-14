@@ -1,10 +1,13 @@
 @import "tailwindcss";
 
+/* Sistema según design-taste-frontend (software): marca del cliente vía `start.mjs brand`
+   (fondo casi negro, tinta #f2f3f5, acento #3987e5 del handoff), tipografía repartida "host":
+   Host Grotesk + JetBrains Mono. Interfaz 90–95% neutra: el color vive en los globos, los
+   veredictos y los marcadores. Sin glass, sin degradés, sin brillos, sin sombras en reposo. */
 @theme {
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-sans: "Host Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --color-accent: #3987e5;
-  /* Relleno con texto blanco encima: #3987e5 da 3,6:1, este 4,95:1 (AA). */
-  --color-accent-fill: #2a6fcc;
   --color-strong: #0ca30c;
   --color-moderate: #d98a00;
   --color-weak: #ec835a;
@@ -14,48 +17,37 @@
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #04050a;
-  --bg-2: #0a0d1c;
-  --fg: #f4f6fb;
-  --muted: rgb(226 232 255 / 0.62);
-  --faint: rgb(226 232 255 / 0.55); /* 5,3:1 sobre el glass (antes 3,3:1) */
-  --glass: rgb(18 22 36 / 0.55);
-  --glass-strong: rgb(24 28 46 / 0.78);
-  --glass-hover: rgb(30 36 58 / 0.66);
-  --line: rgb(255 255 255 / 0.08);
-  --line-strong: rgb(255 255 255 / 0.14);
-  --line-top: rgb(255 255 255 / 0.16);
-  --track: rgb(255 255 255 / 0.07);
-  --shadow: 0 24px 70px -28px rgb(0 0 0 / 0.85);
-  --nebula-a: rgb(57 135 229 / 0.16);
-  --nebula-b: rgb(14 165 233 / 0.09);
-  --star: 255 255 255;
+  --bg: #0a0b0d;
+  --card: #131519; /* un paso sobre el fondo */
+  --card-hover: #181b20;
+  --fg: #f2f3f5;
+  --muted: #a3a9b3; /* un solo gris: etiquetas y metadatos (7,4:1 sobre la card) */
+  --faint: var(--muted);
+  --line: rgb(242 243 245 / 0.1);
+  --line-strong: rgb(242 243 245 / 0.2);
+  --lip: rgb(255 255 255 / 0.06); /* luz de 1px arriba de cada card (solo oscuro) */
+  --track: rgb(242 243 245 / 0.08);
+  --accent-ink: #0a0b0d; /* texto sobre el acento: 5,4:1 */
 }
 
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #eef1f8;
-  --bg-2: #e3e8f4;
-  --fg: #0b0e17;
-  --muted: rgb(15 20 38 / 0.64);
-  --faint: rgb(15 20 38 / 0.62); /* 5,0:1 (antes 3,0:1) */
-  --glass: rgb(255 255 255 / 0.62);
-  --glass-strong: rgb(255 255 255 / 0.82);
-  --glass-hover: rgb(255 255 255 / 0.8);
-  --line: rgb(15 23 42 / 0.08);
-  --line-strong: rgb(15 23 42 / 0.14);
-  --line-top: rgb(255 255 255 / 0.95);
-  --track: rgb(15 23 42 / 0.07);
-  --shadow: 0 24px 60px -30px rgb(30 40 80 / 0.35);
-  --nebula-a: rgb(57 135 229 / 0.14);
-  --nebula-b: rgb(14 165 233 / 0.07);
-  --star: 40 50 90;
+  --bg: #f2f3f5;
+  --card: #ffffff;
+  --card-hover: #fafafa;
+  --fg: #0a0b0d;
+  --muted: #55585e;
+  --faint: var(--muted);
+  --line: rgb(10 11 13 / 0.1);
+  --line-strong: rgb(10 11 13 / 0.2);
+  --lip: transparent;
+  --track: rgb(10 11 13 / 0.07);
+  --accent-ink: #0a0b0d;
 }
 
 html {
   background: var(--bg);
   color: var(--fg);
-  /* El cambio claro/oscuro se funde, sin salto brusco de brillo */
   transition:
     background-color 300ms ease,
     color 300ms ease;
@@ -66,6 +58,7 @@ html {
 body {
   min-height: 100dvh;
   font-family: var(--font-sans);
+  font-size: 16px;
   line-height: 1.5;
   letter-spacing: 0;
   font-optical-sizing: auto;
@@ -75,40 +68,44 @@ body {
   background: rgb(57 135 229 / 0.35);
 }
 
-.tnum {
+/* Cifras: monoespaciada con números tabulares */
+.tnum,
+.mono {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+/* Cifras grandes en la display, también tabulares */
+.figure {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+.display {
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
 }
 
-.glass {
+/* La card: un paso sobre el fondo, una línea fina, un labio de luz arriba. Nada más. */
+.card {
   position: relative;
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  backdrop-filter: blur(22px) saturate(160%);
+  background: var(--card);
   border: 1px solid var(--line);
-  box-shadow:
-    inset 0 1px 0 0 var(--line-top),
-    var(--shadow);
-  border-radius: 24px;
+  box-shadow: inset 0 1px 0 0 var(--lip);
+  border-radius: 20px;
   transition:
     background-color 300ms ease,
-    border-color 300ms ease;
-}
-/* Luz fina arriba del borde */
-.glass::before {
-  content: "";
-  position: absolute;
-  inset: 0 18% auto;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--line-top), transparent);
-  pointer-events: none;
+    border-color 200ms ease;
 }
 
+/* Etiquetas: oración, 13px/500, sin mayúsculas ni tracking */
 .kicker {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--faint);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--muted);
 }
 
 .press {
@@ -134,8 +131,8 @@ body {
   z-index: 100;
   padding: 10px 16px;
   border-radius: 999px;
-  background: var(--color-accent-fill);
-  color: #fff;
+  background: var(--color-accent);
+  color: var(--accent-ink);
   font-size: 14px;
   font-weight: 600;
   transform: translateY(-160%);
@@ -147,21 +144,16 @@ body {
 
 /* Transparencia reducida: materiales sólidos */
 @media (prefers-reduced-transparency: reduce) {
-  .glass,
   .gm-label,
   .gm-cluster {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-  }
-  .glass {
-    background: var(--glass-strong);
   }
 }
 /* Más contraste: fondos casi sólidos y bordes definidos */
 @media (prefers-contrast: more) {
   :root,
   [data-theme] {
-    --glass: var(--glass-strong);
     --line: var(--line-strong);
     --muted: var(--fg);
   }
@@ -171,10 +163,6 @@ body {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
   border-radius: 10px;
-}
-/* Destinos de foco programático (el skip link): reciben el foco sin anillo */
-[tabindex="-1"]:focus-visible {
-  outline: none;
 }
 
 .no-scrollbar {
@@ -219,14 +207,12 @@ body {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: #fff;
+  color: #f2f3f5;
+  font-family: var(--font-sans);
   padding: 3px 8px;
-  border-radius: 999px;
-  background: rgb(10 12 22 / 0.62);
-  border: 1px solid rgb(255 255 255 / 0.14);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 6px 16px -6px rgb(0 0 0 / 0.6);
+  border-radius: 6px;
+  background: #131519;
+  border: 1px solid rgb(242 243 245 / 0.16);
   pointer-events: none;
 }
 .gm-label-muted {
@@ -239,11 +225,13 @@ body {
   display: flex;
   gap: 7px;
   align-items: center;
-  border-color: rgb(57 135 229 / 0.6);
-  background: rgb(10 16 34 / 0.72);
+  border-color: rgb(242 243 245 / 0.28);
+  background: #131519;
 }
 .gm-label-strong b {
-  color: #9cc7ff;
+  color: #f2f3f5;
+  font-family: var(--font-mono);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -257,7 +245,7 @@ body {
   height: 8px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.18), 0 0 10px rgb(255 255 255 / 0.6);
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.18);
   transition: transform 200ms ease;
 }
 .gm-famous .gm-label {
@@ -280,7 +268,7 @@ body {
   border-radius: 50%;
   background: #3987e5;
   border: 2px solid #fff;
-  box-shadow: 0 0 0 6px rgb(57 135 229 / 0.25), 0 0 24px rgb(57 135 229 / 0.9);
+  box-shadow: 0 0 0 5px rgb(57 135 229 / 0.28);
 }
 
 .gm-origin-dot {
@@ -299,9 +287,8 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #cfe3ff, #3987e5 60%);
+  background: #3987e5;
   border: 2px solid #fff;
-  box-shadow: 0 0 28px rgb(57 135 229 / 0.95);
 }
 .gm-overall .gm-halo {
   position: absolute;
@@ -327,8 +314,8 @@ body {
   gap: 3px;
   padding: 3px;
   border-radius: 999px;
-  background: rgb(10 12 22 / 0.55);
-  border: 1px solid rgb(255 255 255 / 0.18);
+  background: #131519;
+  border: 1px solid rgb(242 243 245 / 0.18);
 }
 .gm-cluster i {
   display: block;
@@ -336,7 +323,6 @@ body {
   height: 9px;
   border-radius: 50%;
   background: var(--c);
-  box-shadow: 0 0 8px var(--c);
   transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .gm-cluster i.is-hl {

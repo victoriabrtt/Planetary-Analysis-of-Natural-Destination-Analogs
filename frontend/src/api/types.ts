@@ -43,4 +43,6 @@ export interface MatchResponse {
 export interface MetaResponse {
   dims: DimMeta[]
   profiles: { id: string; name: string; blurb: string; weights: Record<string, number> }[]
+  /** Celdas precalculadas por cuerpo (el dato duro de la portada). */
+  bodies?: Record<string, { cells: number; cell_km: number; source: string }>
 }

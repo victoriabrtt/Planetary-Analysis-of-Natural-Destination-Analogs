@@ -9,7 +9,7 @@ import { resultDims, sourceBodyOf, targetBodyOf, useStore } from '../store/useSt
 import GlobeView, { type Marker } from './GlobeView'
 import { CursorIcon } from './Icons'
 
-function PanelShell({ kicker, title, body, right, children, footer }: {
+function PanelShell({ kicker, title, right, children, footer }: {
   kicker: string
   title: string
   body: Body
@@ -17,21 +17,19 @@ function PanelShell({ kicker, title, body, right, children, footer }: {
   children: React.ReactNode
   footer?: React.ReactNode
 }) {
-  const tint = body === 'mars' ? 'rgb(255 120 70 / 0.10)' : body === 'earth' ? 'rgb(57 135 229 / 0.12)' : 'rgb(200 210 235 / 0.07)'
   return (
-    <section className="glass flex flex-col overflow-hidden" aria-label={`${kicker}: ${title}`}>
-      <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(60% 55% at 50% 52%, ${tint}, transparent 70%)` }} />
-      <div className="relative z-10 flex items-start justify-between gap-3 px-5 pt-4">
+    <section className="card flex flex-col overflow-hidden" aria-label={`${kicker}: ${title}`}>
+      <div className="relative z-10 flex items-start justify-between gap-3 px-6 pt-5">
         <div>
           <div className="kicker">{kicker}</div>
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.h2
               key={title}
-              initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
               transition={spring}
-              className="text-2xl font-semibold tracking-[-0.03em]"
+              className="display mt-0.5 text-[28px]"
             >
               {title}
             </motion.h2>
@@ -40,7 +38,7 @@ function PanelShell({ kicker, title, body, right, children, footer }: {
         {right}
       </div>
       <div className="relative h-[340px] sm:h-[420px] lg:h-[480px]">{children}</div>
-      {footer && <div className="relative z-10 px-4 pb-4">{footer}</div>}
+      {footer && <div className="relative z-10 border-t border-(--line) px-6 py-4">{footer}</div>}
     </section>
   )
 }
@@ -87,20 +85,20 @@ export function SourcePanel() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={spring}
-              className="text-sm font-semibold tracking-[-0.01em]"
+              className="text-[15px] font-medium"
             >
               {name}
             </motion.div>
           </AnimatePresence>
-          <div className="tnum text-xs text-(--faint)">{fmtCoord(point.lat, point.lon)}</div>
+          <div className="tnum text-[13px] text-(--muted)">{fmtCoord(point.lat, point.lon)}</div>
         </div>
       }
       footer={
         <div className="flex flex-col gap-2.5">
-          <div className="flex items-center gap-1.5 text-xs text-(--faint)">
-            <CursorIcon width={13} height={13} /> Hacé clic en cualquier punto del globo, o elegí un atajo
+          <div className="kicker flex items-center gap-1.5">
+            <CursorIcon width={14} height={14} /> Hacé clic en cualquier punto del globo, o elegí un sitio
           </div>
-          <ul className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5" aria-label="Lugares famosos">
+          <ul className="flex flex-wrap gap-1.5" aria-label="Lugares famosos">
             {sites.map((s) => {
               const active = activeSite?.name === s.name
               return (
@@ -108,16 +106,12 @@ export function SourcePanel() {
                 <button
                   aria-pressed={active}
                   onClick={() => selectPoint(s.lat, s.lon)}
-                  className={`press relative shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-medium tracking-[-0.01em] transition-colors ${
-                    active ? 'border-transparent text-white' : 'border-(--line) text-(--muted) hover:border-(--line-strong) hover:text-(--fg)'
+                  className={`press relative shrink-0 rounded-md border px-3 py-1.5 text-[14px] font-medium transition-colors ${
+                    active ? 'border-transparent text-(--bg)' : 'border-(--line) text-(--muted) hover:border-(--line-strong) hover:text-(--fg)'
                   }`}
                 >
                   {active && (
-                    <motion.span
-                      layoutId="chip-active"
-                      transition={spring}
-                      className="absolute inset-0 -z-0 rounded-full bg-accent-fill shadow-[0_6px_18px_-6px_rgb(57_135_229/0.9)]"
-                    />
+                    <motion.span layoutId="chip-active" transition={spring} className="absolute inset-0 -z-0 rounded-md bg-(--fg)" />
                   )}
                   <span className="relative">{s.name}</span>
                 </button>
@@ -218,26 +212,26 @@ export function TargetPanel() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={spring}
-                className="text-sm font-semibold tracking-[-0.01em]"
+                className="text-[15px] font-medium"
               >
                 {o.name}
               </motion.div>
             </AnimatePresence>
-            <div className="tnum text-xs text-(--faint)">{fmtCoord(o.lat, o.lon)}</div>
+            <div className="tnum text-[13px] text-(--muted)">{fmtCoord(o.lat, o.lon)}</div>
           </div>
         )
       }
       footer={
-        <ul className="flex flex-wrap gap-x-3.5 gap-y-1.5 text-xs text-(--muted)" aria-label="Leyenda de marcadores">
+        <ul className="kicker flex flex-wrap gap-x-4 gap-y-1.5" aria-label="Leyenda de marcadores">
           <li className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full border-2 border-white bg-accent" /> Global
+            <span className="h-2.5 w-2.5 rounded-full border-2 border-(--fg) bg-accent" /> Global
           </li>
           {dims.map((d) => (
             <li
               key={d.key}
               className={`flex items-center gap-1.5 transition-opacity ${hoveredDim && hoveredDim !== d.key ? 'opacity-40' : ''}`}
             >
-              <span className="h-2 w-2 rounded-full" style={{ background: d.color, boxShadow: `0 0 6px ${d.color}` }} />
+              <span className="h-2 w-2 rounded-full" style={{ background: d.color }} />
               {d.short}
             </li>
           ))}

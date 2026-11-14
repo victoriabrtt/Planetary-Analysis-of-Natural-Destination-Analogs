@@ -1,35 +1,27 @@
-import { MotionConfig, motion } from 'framer-motion'
+import { MotionConfig } from 'framer-motion'
 import { useEffect } from 'react'
 import Caveats from './components/Caveats'
 import DimensionCard from './components/DimensionCard'
 import { SourcePanel, TargetPanel } from './components/GlobePanel'
 import Header from './components/Header'
 import { ArrowIcon } from './components/Icons'
+import Intro from './components/Intro'
 import ProfileSelector from './components/ProfileSelector'
 import Ranking from './components/Ranking'
 import ResultHero from './components/ResultHero'
-import Starfield from './components/Starfield'
-import { BODY_THE } from './engine/data'
-import { VERDICTS, verdictOf } from './engine/dimensions'
 import { pct } from './lib/format'
 import { spring } from './lib/motion'
 import { resultDims, sourceBodyOf, targetBodyOf, useActiveProfile, useStore } from './store/useStore'
 
+/** Entre los dos globos: la cercanía global, en una pastilla sólida (sin brillo). */
 function Connector() {
   const result = useStore((s) => s.result)
-  const score = result?.overall.score ?? 0
-  const v = VERDICTS[verdictOf(score)]
   return (
     <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 lg:block" aria-hidden>
-      <motion.div
-        layout
-        transition={spring}
-        className="glass flex items-center gap-2 !rounded-full px-3.5 py-2"
-        style={{ boxShadow: `0 0 40px -6px ${v.color}88, inset 0 1px 0 var(--line-top)` }}
-      >
+      <div className="flex items-center gap-2 rounded-lg border border-(--line-strong) bg-(--card) px-3 py-1.5">
         <ArrowIcon className="text-(--muted)" />
-        <span className="tnum text-sm font-semibold">{result ? `${pct(score)}%` : '—'}</span>
-      </motion.div>
+        <span className="tnum text-[14px]">{result ? `${pct(result.overall.score)}%` : '—'}</span>
+      </div>
     </div>
   )
 }
@@ -60,83 +52,59 @@ export default function App() {
       <a href="#resultados" className="skip-link">
         Saltar a los resultados
       </a>
-      <Starfield />
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8">
         <Header />
+        <main className="flex flex-col gap-6">
+          <Intro />
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...spring, delay: 0.05 }}
-          className="max-w-3xl pt-2"
-        >
-          <h2 className="text-[34px] font-semibold leading-[1.05] tracking-[-0.045em] sm:text-[48px]">
-            El Shazam de los{' '}
-            <span className="bg-gradient-to-r from-[#9cc7ff] via-accent to-[#5eead4] bg-clip-text text-transparent">análogos planetarios</span>.
-          </h2>
-          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-(--muted) sm:text-base">
-            Elegí un punto en {BODY_THE[src]} y encontramos el lugar de {BODY_THE[tgt]} con la huella más parecida.{' '}
-            <span className="text-(--fg)">
-              ¿Este lugar es tan extremo para la Tierra como aquel lo es para {BODY_THE[body]}?
-            </span>
-          </p>
-        </motion.div>
-
-        <div className="relative grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
-          <SourcePanel />
-          <TargetPanel />
-          <Connector />
-        </div>
-
-        {error && (
-          <div role="alert" className="glass border-broken/50 px-5 py-3 text-sm">
-            <span className="font-semibold">Sin resultado para este punto.</span>{' '}
-            <span className="text-(--muted)">{error} Elegí otro punto o un atajo.</span>
+          <div className="relative grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
+            <SourcePanel />
+            <TargetPanel />
+            <Connector />
           </div>
-        )}
 
-        <div id="resultados" tabIndex={-1} className="scroll-mt-6 outline-none">
-          <ProfileSelector />
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-[1.25fr_1fr] [&>*]:min-w-0">
-          <ResultHero />
-          <Ranking />
-        </div>
-
-        <section aria-label="Cercanía por dimensión">
-          <div className="mb-3 flex items-end justify-between">
-            <div>
-              <div className="kicker">Por dimensión</div>
-              <p className="mt-0.5 text-sm text-(--muted)">
-                El mejor análogo para cada dimensión, en valores absolutos reales. Pasá el mouse para verlo en el globo.
-              </p>
+          {error && (
+            <div role="alert" className="card border-broken/50 px-6 py-4 text-[16px]">
+              <span className="font-medium">Sin resultado para este punto.</span>{' '}
+              <span className="text-(--muted)">{error} Elegí otro punto o un sitio de la lista.</span>
             </div>
-          </div>
-          <div className={`grid gap-4 sm:grid-cols-2 ${dims.length % 3 === 0 ? 'xl:grid-cols-3' : 'xl:grid-cols-4'}`}>
-            {result
-              ? dims.map((d, i) => (
-                  <DimensionCard
-                    key={d.key}
-                    dim={d}
-                    m={result.perDim[d.key]}
-                    weight={profile.weights[d.key] ?? 1}
-                    sourceBody={src}
-                    targetBody={tgt}
-                    index={i}
-                  />
-                ))
-              : dims.map((d) => <div key={d.key} className="glass h-[290px] motion-safe:animate-pulse" />)}
-          </div>
-        </section>
+          )}
 
-        <Caveats />
+          <div className="pt-6">
+            <ProfileSelector />
+          </div>
 
-        <footer className="flex flex-col gap-1 pb-4 pt-2 text-xs text-(--faint) sm:flex-row sm:justify-between">
-          <span>
-            Cercanía por dimensión = exp(−(|a − b| / tolerancia)²) · global = promedio ponderado por perfil.
-          </span>
-          <span>Texturas: Solar System Scope (CC BY 4.0) · Polos lunares: LROC WAC, NASA/GSFC/ASU · NASA Space Apps 2026</span>
+          <div className="grid gap-4 lg:grid-cols-[1.25fr_1fr] [&>*]:min-w-0">
+            <ResultHero />
+            <Ranking />
+          </div>
+
+          <section aria-labelledby="dims-title" className="pt-6">
+            <h2 id="dims-title" className="display max-w-[46rem] text-[24px]">
+              Cercanía por dimensión. <span className="text-(--muted)">El mejor análogo para cada medida, con sus valores reales.</span>
+            </h2>
+            <div className={`mt-6 grid gap-4 sm:grid-cols-2 ${dims.length % 3 === 0 ? 'xl:grid-cols-3' : 'xl:grid-cols-4'}`}>
+              {result
+                ? dims.map((d) => (
+                    <DimensionCard
+                      key={d.key}
+                      dim={d}
+                      m={result.perDim[d.key]}
+                      weight={profile.weights[d.key] ?? 1}
+                      sourceBody={src}
+                      targetBody={tgt}
+                    />
+                  ))
+                : dims.map((d) => <div key={d.key} className="card h-[320px] motion-safe:animate-pulse" />)}
+            </div>
+          </section>
+
+          <Caveats />
+        </main>
+
+        <footer className="kicker flex flex-col gap-1 border-t border-(--line) pb-2 pt-5 sm:flex-row sm:justify-between">
+          <span className="tnum">cercanía = exp(−(|a − b| / tol)²) · global = promedio ponderado por perfil</span>
+          <span>Texturas: Solar System Scope (CC BY 4.0) · Polos lunares: LROC WAC, NASA/GSFC/ASU</span>
         </footer>
       </div>
     </MotionConfig>

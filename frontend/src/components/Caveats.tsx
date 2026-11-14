@@ -1,48 +1,43 @@
+import { BODY_THE } from '../engine/data'
 import { verdictOf } from '../engine/dimensions'
 import { fmtVal } from '../lib/format'
 import { resultDims, targetBodyOf, useStore } from '../store/useStore'
-import { AlertIcon } from './Icons'
-import { BODY_THE } from '../engine/data'
 
 export default function Caveats() {
   const result = useStore((s) => s.result)
   const tgt = useStore((s) => targetBodyOf(s.mode, s.body))
-  const where = BODY_THE[tgt]
-  const caveats = result?.caveats ?? []
   const dims = useStore((s) => s.dims)
+  const caveats = result?.caveats ?? []
   const broken = result ? resultDims(dims, result).filter((d) => verdictOf(result.perDim[d.key].score) === 'broken') : []
 
   return (
-    <section className="glass p-6" aria-labelledby="caveats-title">
-      <div className="flex items-center gap-2">
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-broken/15 text-broken">
-          <AlertIcon />
-        </span>
-        <h3 id="caveats-title" className="text-[15px] font-semibold tracking-[-0.015em]">
-          Dónde se rompe la analogía
-        </h3>
-      </div>
-      <ul className={`mt-4 grid gap-2.5 md:grid-cols-2 ${caveats.length === 3 ? 'xl:grid-cols-3' : 'xl:grid-cols-4'}`}>
+    <section className="card p-7 sm:p-8" aria-labelledby="caveats-title">
+      <h2 id="caveats-title" className="display text-[24px]">
+        Dónde se rompe la analogía
+      </h2>
+      <ul className="mt-5 grid gap-x-10 border-t border-(--line) md:grid-cols-2">
+        {broken.map((d) => {
+          const m = result!.perDim[d.key]
+          return (
+            <li key={d.key} className="flex gap-3 border-b border-(--line) py-4 text-[16px] leading-relaxed">
+              <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-broken" aria-hidden />
+              <span>
+                <span className="font-medium">{d.name}.</span>{' '}
+                <span className="text-(--muted)">
+                  Ningún lugar de {BODY_THE[tgt]} en el dataset reproduce este valor: el más cercano queda a{' '}
+                  <span className="tnum text-(--fg)">{fmtVal(d, m.diff)}</span> (tolerancia ±{fmtVal(d, m.tol ?? d.tol)}).
+                </span>
+              </span>
+            </li>
+          )
+        })}
         {caveats.map((c) => (
-          <li key={c} className="rounded-2xl border border-(--line) bg-(--track) px-4 py-3 text-sm leading-relaxed text-(--muted)">
-            {c}
+          <li key={c} className="flex gap-3 border-b border-(--line) py-4 text-[16px] leading-relaxed text-(--muted)">
+            <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-(--line-strong)" aria-hidden />
+            <span>{c}</span>
           </li>
         ))}
       </ul>
-      {result && broken.length > 0 && (
-        <ul className="mt-2.5 grid gap-2.5 md:grid-cols-2">
-          {broken.map((d) => {
-            const m = result.perDim[d.key]
-            return (
-              <li key={d.key} className="rounded-2xl border border-broken/35 bg-broken/8 px-4 py-3 text-sm leading-relaxed text-(--muted)">
-                <span className="font-semibold text-(--fg)">{d.name} · Se rompe.</span> Ningún lugar de {where} en el dataset reproduce este
-                valor: el más cercano queda a{' '}
-                <span className="tnum font-semibold text-(--fg)">{fmtVal(d, m.diff)}</span> (tolerancia ±{fmtVal(d, m.tol ?? d.tol)}).
-              </li>
-            )
-          })}
-        </ul>
-      )}
     </section>
   )
 }
