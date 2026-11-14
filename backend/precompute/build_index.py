@@ -25,6 +25,8 @@ from pathlib import Path
 
 import numpy as np
 
+from app.engine import illumination
+
 from .descriptors import CELL_KM, DIMS, GeoTiffRaster, Grid, PDSRaster, compute
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -289,7 +291,7 @@ def query_points(built: dict) -> None:
             row = int(c2r[int(g.cell_of(la, lo))])
             desc = None if row < 0 else {k: round(float(vals[row, i]), 2) for i, k in enumerate(DIMS)}
             if desc:
-                desc["illum"] = round(abs(la), 2)  # el punto exacto, no el centro de la celda
+                desc["illum"] = round(float(illumination(body, la)), 2)  # el punto exacto, no el centro de la celda
             lst.append({"name": name, "lat": la, "lon": lo, "descriptors": desc})
         out[body] = lst
     path = INDEX / "query_points.json"

@@ -19,6 +19,17 @@ import numpy as np
 
 INDEX_DIR = Path(__file__).resolve().parents[1] / "data" / "index"
 
+# Inclinación del eje (oblicuidad) de cada cuerpo, en grados. Cambia todo en la iluminación:
+# con |lat| crudo se asumiría inclinación cero, correcto para la Luna pero falso para la Tierra.
+OBLIQUITY_DEG = {"moon": 1.5, "earth": 23.4, "mars": 25.2}
+
+
+def illumination(body: str, lat):
+    """Ángulo mínimo de incidencia solar (°): max(0, |lat| − oblicuidad). Cuanto más alto, más
+    rasante pega el sol aun en el mejor momento del año. Sirve con escalares o arrays de numpy."""
+    return np.maximum(0.0, np.abs(lat) - OBLIQUITY_DEG[body])
+
+
 # key → metadatos. `tol` es la tolerancia física absoluta (cuánta diferencia cuenta como "lejos").
 DIMENSIONS: dict[str, dict] = {
     "terrain": {
@@ -51,7 +62,7 @@ DIMENSIONS: dict[str, dict] = {
         "unit": "°",
         "tol": 18.0,
         "decimals": 0,
-        "hint": "Ángulo del sol al mediodía (90° = sol rasante, como en los polos)",
+        "hint": "Qué tan rasante pega el sol en el mejor momento del año: |latitud| menos la inclinación del eje",
     },
 }
 
@@ -190,7 +201,7 @@ class Engine:
         srow = src_idx.row_at(lat, lon)
         src = {d: float(src_idx.vals[srow, src_idx.dims.index(d)]) for d in dims}
         if "illum" in src:
-            src["illum"] = abs(lat)  # el punto exacto, no el centro de su celda
+            src["illum"] = float(illumination(source_body, lat))  # el punto exacto, no el centro de su celda
 
         # Cercanía por dimensión sobre TODAS las celdas (vectorizado) y global ponderada.
         C = np.empty((len(tgt.lat), len(dims)))
@@ -283,7 +294,9 @@ def caveats(source_body: str, target_body: str, cell_km: float) -> list[str]:
         f"No reproduce {ATMOS.get(off, 'la atmósfera')}.",
         "No reproduce el ambiente de radiación sin una magnetosfera que proteja.",
         f"Se compara la forma del terreno a escala de celdas de ~{cell_km:g} km (DEM de ~1,9 km/px): "
-        "no captura rocas, regolito ni detalle de metros. La iluminación es un proxy (|latitud|).",
+        "no captura rocas, regolito ni detalle de metros.",
+        "La iluminación es el ángulo mínimo de incidencia del sol, |latitud| menos la inclinación del eje "
+        "(Luna 1,5°, Tierra 23,4°, Marte 25,2°); no considera la orientación de cada ladera.",
     ]
 
 

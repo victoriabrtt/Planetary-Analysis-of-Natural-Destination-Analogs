@@ -59,8 +59,12 @@ def test_contract_shape(client):
         assert {"site", "score", "src", "match", "diff"} <= set(m)
         assert 0 <= m["score"] <= 1
         assert m["diff"] == pytest.approx(abs(m["src"] - m["match"]), abs=10 ** -DIMENSIONS[k]["decimals"] * 1.01)
-        # La fórmula: exp(-(diff/tol)^2)
-        assert m["score"] == pytest.approx(math.exp(-((m["diff"] / DIMENSIONS[k]["tol"]) ** 2)), abs=0.02)
+        # La fórmula: exp(-(diff/tol)^2). La diferencia mostrada sale de valores redondeados, así que
+        # la diferencia real cae dentro de ±1 unidad de redondeo de la mostrada.
+        unit, tol = 10 ** -DIMENSIONS[k]["decimals"], DIMENSIONS[k]["tol"]
+        lo = math.exp(-(((m["diff"] + unit) / tol) ** 2))
+        hi = math.exp(-((max(m["diff"] - unit, 0) / tol) ** 2))
+        assert lo - 1e-3 <= m["score"] <= hi + 1e-3
     assert len(j["caveats"]) >= 3
     assert len(j["ranking"]) == 5
     assert j["ranking"][0]["site"] == j["overall"]["site"]
@@ -95,3 +99,27 @@ def test_meta(client):
     j = client.get("/api/meta").json()
     assert [d["key"] for d in j["dims"]] == list(DIMENSIONS)
     assert {p["id"] for p in j["profiles"]} == {"balanced", "rover", "thermal"}
+
+
+def test_illumination_obliquity():
+    from app.engine import OBLIQUITY_DEG, illumination
+
+    assert OBLIQUITY_DEG == {"moon": 1.5, "earth": 23.4, "mars": 25.2}
+    assert illumination("moon", -89.9) == pytest.approx(88.4)
+    assert illumination("earth", 10.0) == 0.0  # dentro de los trópicos el sol llega al cenit
+
+
+@need("moon", "earth")
+def test_lunar_pole_breaks_on_illumination(client):
+    """Con la Tierra inclinada 23,4°, ningún lugar es tan rasante como el polo sur lunar."""
+    j = post(client).json()
+    assert j["perDim"]["illum"]["src"] == pytest.approx(88, abs=0.5)
+    assert j["perDim"]["illum"]["match"] <= 90 - 23.4 + 0.5
+    assert j["overall"]["perDim"]["illum"]["score"] < 0.25  # "Se rompe"
+
+
+@need("mars", "earth")
+def test_mars_pole_illumination_holds(client):
+    """Marte (25,2°) y la Tierra (23,4°) tienen inclinación parecida: la analogía de iluminación aguanta."""
+    j = post(client, source_body="mars", lat=-80.0, lon=0.0).json()
+    assert j["perDim"]["illum"]["score"] > 0.9

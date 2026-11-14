@@ -8,7 +8,7 @@
         "terrain": 0.77,
         "roughness": 12.75,
         "relief": 299.0,
-        "illum": 0.67
+        "illum": 0.0
       }
     },
     {
@@ -19,7 +19,7 @@
         "terrain": 6.35,
         "roughness": 333.84,
         "relief": 2495.0,
-        "illum": 89.9
+        "illum": 88.4
       }
     },
     {
@@ -30,7 +30,7 @@
         "terrain": 6.63,
         "roughness": 391.75,
         "relief": 2110.5,
-        "illum": 43.3
+        "illum": 41.8
       }
     },
     {
@@ -41,7 +41,7 @@
         "terrain": 7.08,
         "roughness": 364.97,
         "relief": 1930.0,
-        "illum": 20.19
+        "illum": 18.69
       }
     },
     {
@@ -52,7 +52,7 @@
         "terrain": 10.28,
         "roughness": 182.59,
         "relief": 4298.5,
-        "illum": 84.6
+        "illum": 83.1
       }
     },
     {
@@ -63,7 +63,7 @@
         "terrain": 8.44,
         "roughness": 377.66,
         "relief": 2554.0,
-        "illum": 23.7
+        "illum": 22.2
       }
     }
   ],
@@ -76,7 +76,7 @@
         "terrain": 1.66,
         "roughness": 65.75,
         "relief": 663.0,
-        "illum": 18.44
+        "illum": 0.0
       }
     },
     {
@@ -87,7 +87,7 @@
         "terrain": 12.32,
         "roughness": 514.01,
         "relief": 4013.0,
-        "illum": 5.4
+        "illum": 0.0
       }
     },
     {
@@ -98,7 +98,7 @@
         "terrain": 4.86,
         "roughness": 427.68,
         "relief": 2036.0,
-        "illum": 18.65
+        "illum": 0.0
       }
     },
     {
@@ -109,7 +109,7 @@
         "terrain": 12.31,
         "roughness": 573.97,
         "relief": 4410.0,
-        "illum": 13.9
+        "illum": 0.0
       }
     },
     {
@@ -120,7 +120,7 @@
         "terrain": 0.2,
         "roughness": 7.46,
         "relief": 78.0,
-        "illum": 14.6
+        "illum": 0.0
       }
     },
     {
@@ -131,7 +131,7 @@
         "terrain": 0.24,
         "roughness": 11.85,
         "relief": 84.0,
-        "illum": 4.5
+        "illum": 0.0
       }
     }
   ],
@@ -144,7 +144,7 @@
         "terrain": 0.75,
         "roughness": 33.53,
         "relief": 202.8,
-        "illum": 25.0
+        "illum": 1.6
       }
     },
     {
@@ -155,7 +155,7 @@
         "terrain": 2.14,
         "roughness": 68.67,
         "relief": 379.69,
-        "illum": 29.0
+        "illum": 5.6
       }
     },
     {
@@ -166,7 +166,7 @@
         "terrain": 2.43,
         "roughness": 79.96,
         "relief": 761.84,
-        "illum": 41.7
+        "illum": 18.3
       }
     },
     {
@@ -177,7 +177,7 @@
         "terrain": 0.44,
         "roughness": 17.89,
         "relief": 111.95,
-        "illum": 19.9
+        "illum": 0.0
       }
     },
     {
@@ -188,7 +188,7 @@
         "terrain": 6.03,
         "roughness": 254.01,
         "relief": 1637.66,
-        "illum": 79.4
+        "illum": 56.0
       }
     },
     {
@@ -199,7 +199,7 @@
         "terrain": 4.9,
         "roughness": 215.49,
         "relief": 787.74,
-        "illum": 78.2
+        "illum": 54.8
       }
     },
     {
@@ -210,7 +210,7 @@
         "terrain": 0.02,
         "roughness": 0.85,
         "relief": 4.6,
-        "illum": 37.0
+        "illum": 13.6
       }
     },
     {
@@ -221,7 +221,7 @@
         "terrain": 0.81,
         "roughness": 43.8,
         "relief": 258.62,
-        "illum": 24.7
+        "illum": 1.3
       }
     },
     {
@@ -232,7 +232,7 @@
         "terrain": 5.32,
         "roughness": 174.53,
         "relief": 2078.26,
-        "illum": 19.8
+        "illum": 0.0
       }
     },
     {
@@ -243,7 +243,7 @@
         "terrain": 2.33,
         "roughness": 108.2,
         "relief": 511.72,
-        "illum": 27.6
+        "illum": 4.2
       }
     },
     {
@@ -254,7 +254,7 @@
         "terrain": 8.83,
         "roughness": 384.66,
         "relief": 2646.34,
-        "illum": 28.3
+        "illum": 4.9
       }
     },
     {
@@ -265,7 +265,7 @@
         "terrain": 4.29,
         "roughness": 166.72,
         "relief": 773.43,
-        "illum": 69.0
+        "illum": 45.6
       }
     },
     {
@@ -276,7 +276,7 @@
         "terrain": 1.22,
         "roughness": 46.54,
         "relief": 325.33,
-        "illum": 75.4
+        "illum": 52.0
       }
     },
     {
@@ -287,7 +287,7 @@
         "terrain": 2.89,
         "roughness": 58.38,
         "relief": 908.89,
-        "illum": 31.6
+        "illum": 8.2
       }
     },
     {
@@ -298,7 +298,7 @@
         "terrain": 2.39,
         "roughness": 64.85,
         "relief": 638.74,
-        "illum": 0.6
+        "illum": 0.0
       }
     },
     {
@@ -309,7 +309,7 @@
         "terrain": 8.95,
         "roughness": 431.2,
         "relief": 1535.27,
-        "illum": 77.5
+        "illum": 54.1
       }
     },
     {
@@ -320,7 +320,7 @@
         "terrain": 3.84,
         "roughness": 146.07,
         "relief": 1355.51,
-        "illum": 24.5
+        "illum": 1.1
       }
     },
     {
@@ -331,7 +331,7 @@
         "terrain": 1.67,
         "roughness": 59.2,
         "relief": 330.12,
-        "illum": 37.7
+        "illum": 14.3
       }
     },
     {
@@ -342,7 +342,7 @@
         "terrain": 7.97,
         "roughness": 362.86,
         "relief": 2476.87,
-        "illum": 19.82
+        "illum": 0.0
       }
     },
     {
@@ -353,7 +353,7 @@
         "terrain": 0.65,
         "roughness": 17.75,
         "relief": 243.12,
-        "illum": 35.03
+        "illum": 11.63
       }
     },
     {
@@ -364,7 +364,7 @@
         "terrain": 1.27,
         "roughness": 75.41,
         "relief": 417.41,
-        "illum": 64.9
+        "illum": 41.5
       }
     },
     {
@@ -375,7 +375,7 @@
         "terrain": 1.16,
         "roughness": 43.38,
         "relief": 300.75,
-        "illum": 38.41
+        "illum": 15.01
       }
     }
   ]

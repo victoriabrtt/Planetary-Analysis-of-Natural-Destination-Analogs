@@ -48,7 +48,7 @@ alturas crudas. Por celda se calculan descriptores locales, donde el cero se can
 | `terrain` | pendiente media (°): atan(‖∇z‖) por píxel, con dx/dy en metros reales | 10° |
 | `roughness` | rugosidad (m): desvío estándar de z **respecto del plano ajustado** en la celda | 120 m |
 | `relief` | relieve local (m): max(z) − min(z) | 400 m |
-| `illum` | iluminación (°): \|lat\| como proxy de la incidencia solar | 18° |
+| `illum` | iluminación (°): `max(0, \|lat\| − oblicuidad)`, el ángulo mínimo de incidencia solar (Luna 1,5°, Tierra 23,4°, Marte 25,2°) | 18° |
 
 - **Misma vara en los tres cuerpos.** Las celdas tienen **~20 km de lado en el terreno**, no un tamaño fijo en
   grados: hay bandas de latitud de altura fija, y en cada banda `round(360·cos(lat)/Δlat)` celdas, lo que da una
@@ -114,6 +114,9 @@ gcloud run deploy analog-matcher --source . --region southamerica-east1 --allow-
 
 - La escala es de ~20 km sobre un DEM de ~1,9 km: no ve rocas, regolito ni pendientes de detalle. La pendiente
   a 1,9 km da valores menores que la pendiente local real.
-- `illum = |lat|` es la incidencia al mediodía en el equinoccio sobre una superficie plana. No considera la
-  oblicuidad (Tierra 23,4°, Marte 25°, Luna 1,5°) ni la orientación de la ladera.
+- La iluminación incluye la inclinación del eje de cada cuerpo, pero no la orientación de cada ladera
+  (refinable con hillshade o con los mapas de iluminación polar de LOLA). Consecuencia buscada: la Tierra,
+  inclinada 23,4°, no tiene ningún lugar tan rasante como los polos lunares (máximo terrestre ~66,5° contra
+  ~88° en Shackleton), así que la analogía del polo sur lunar **se rompe en iluminación**. Marte (25,2°) y la
+  Tierra se parecen, y ahí la iluminación sí aguanta.
 - ETOPO sobre hielo (Antártida, Groenlandia) da la superficie del hielo, no la roca.

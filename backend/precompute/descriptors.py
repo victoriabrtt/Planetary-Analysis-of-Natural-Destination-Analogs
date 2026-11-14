@@ -9,8 +9,8 @@ se cancela solo:
   roughness  rugosidad (m)        — desvío estándar de z respecto del plano ajustado en la celda
                                     (std crudo confundiría "inclinado" con "rugoso")
   relief     relieve local (m)    — max(z) − min(z) en la celda
-  illum      iluminación (°)      — |lat| = ángulo de incidencia solar al mediodía en equinoccio para
-                                    una superficie plana (proxy; ver README)
+  illum      iluminación (°)      — max(0, |lat| − oblicuidad del cuerpo): ángulo mínimo de incidencia
+                                    solar (Luna 1,5°, Tierra 23,4°, Marte 25,2°; ver app/engine.py)
 
 Para que la vara sea la misma en los tres cuerpos:
   - Celdas de igual tamaño EN EL TERRENO (CELL_KM), no en grados: bandas de latitud de altura fija
@@ -28,6 +28,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+
+from app.engine import illumination  # una sola definición, compartida con la API
 
 RADIUS_M = {"earth": 6_371_000.0, "moon": 1_737_400.0, "mars": 3_389_500.0}
 CELL_KM = 20.0
@@ -293,5 +295,5 @@ def compute(raster: Raster, grid: Grid, log=print) -> dict[str, np.ndarray]:
             log(f"    banda {b:5d}/{grid.nbands}  lat {latc_b:+7.2f}°  celdas válidas {int(ok.sum())}/{nlon}")
 
     lat, _ = grid.centers()
-    out["illum"] = np.where(np.isfinite(out["terrain"]), np.abs(lat), np.nan).astype(np.float32)
+    out["illum"] = np.where(np.isfinite(out["terrain"]), illumination(grid.body, lat), np.nan).astype(np.float32)
     return out
