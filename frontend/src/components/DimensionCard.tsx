@@ -3,7 +3,7 @@ import type { DimMatch } from '../api/types'
 import { BODY_LABEL, type Body } from '../engine/data'
 import { VERDICTS, verdictOf, type Dimension } from '../engine/dimensions'
 import { fmtCoord, fmtVal, pct } from '../lib/format'
-import { spring } from '../lib/motion'
+import { spring, valueSpring } from '../lib/motion'
 import { useStore } from '../store/useStore'
 import AnimatedNumber from './AnimatedNumber'
 import VerdictBadge from './VerdictBadge'
@@ -26,7 +26,7 @@ export default function DimensionCard({ dim, m, weight, sourceBody, targetBody, 
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...spring, delay: index * 0.04 }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -2 }}
       onHoverStart={() => setHoveredDim(dim.key)}
       onHoverEnd={() => setHoveredDim(null)}
       onFocus={() => setHoveredDim(dim.key)}
@@ -59,7 +59,7 @@ export default function DimensionCard({ dim, m, weight, sourceBody, targetBody, 
           style={{ background: v.color }}
           initial={{ width: 0 }}
           animate={{ width: `${Math.max(2, pct(m.score))}%` }}
-          transition={{ type: 'spring', stiffness: 120, damping: 20, delay: index * 0.04 }}
+          transition={{ ...valueSpring, delay: index * 0.04 }}
         />
       </div>
 

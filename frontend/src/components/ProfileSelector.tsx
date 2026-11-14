@@ -42,7 +42,7 @@ export default function ProfileSelector() {
         ariaLabel="Perfil de misión"
         value={profileId}
         onChange={setProfile}
-        className={`grid w-full md:inline-flex md:w-auto ${profiles.length === 4 ? 'grid-cols-4' : 'grid-cols-3'}`}
+        className={`grid w-full md:inline-flex md:w-auto ${profiles.length === 4 ? 'grid-cols-[repeat(4,minmax(0,1fr))]' : 'grid-cols-[repeat(3,minmax(0,1fr))]'}`}
         options={profiles.map((x) => ({
           value: x.id,
           title: x.blurb,

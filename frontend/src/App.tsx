@@ -57,6 +57,9 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user" transition={spring}>
+      <a href="#resultados" className="skip-link">
+        Saltar a los resultados
+      </a>
       <Starfield />
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         <Header />
@@ -69,7 +72,7 @@ export default function App() {
         >
           <h2 className="text-[34px] font-semibold leading-[1.05] tracking-[-0.045em] sm:text-[48px]">
             El Shazam de los{' '}
-            <span className="bg-gradient-to-r from-[#9cc7ff] via-accent to-[#a78bfa] bg-clip-text text-transparent">análogos planetarios</span>.
+            <span className="bg-gradient-to-r from-[#9cc7ff] via-accent to-[#5eead4] bg-clip-text text-transparent">análogos planetarios</span>.
           </h2>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-(--muted) sm:text-base">
             Elegí un punto en {BODY_THE[src]} y encontramos el lugar de {BODY_THE[tgt]} con la huella más parecida.{' '}
@@ -79,7 +82,7 @@ export default function App() {
           </p>
         </motion.div>
 
-        <div className="relative grid gap-4 lg:grid-cols-2">
+        <div className="relative grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
           <SourcePanel />
           <TargetPanel />
           <Connector />
@@ -92,9 +95,11 @@ export default function App() {
           </div>
         )}
 
-        <ProfileSelector />
+        <div id="resultados" tabIndex={-1} className="scroll-mt-6 outline-none">
+          <ProfileSelector />
+        </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
+        <div className="grid gap-4 lg:grid-cols-[1.25fr_1fr] [&>*]:min-w-0">
           <ResultHero />
           <Ranking />
         </div>
@@ -121,7 +126,7 @@ export default function App() {
                     index={i}
                   />
                 ))
-              : dims.map((d) => <div key={d.key} className="glass h-[290px] animate-pulse" />)}
+              : dims.map((d) => <div key={d.key} className="glass h-[290px] motion-safe:animate-pulse" />)}
           </div>
         </section>
 

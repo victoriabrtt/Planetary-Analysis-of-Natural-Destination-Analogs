@@ -38,9 +38,9 @@ interface Props {
 }
 
 const TEXTURE: Record<Body, string> = {
-  moon: '/textures/2k_moon.jpg',
-  mars: '/textures/2k_mars.jpg',
-  earth: '/textures/2k_earth_daymap.jpg',
+  moon: '/textures/2k_moon.webp',
+  mars: '/textures/2k_mars.webp',
+  earth: '/textures/2k_earth_daymap.webp',
 }
 const ATMOS: Record<Body, { color: string; alt: number }> = {
   moon: { color: '#b8c4dd', alt: 0.12 },
@@ -134,8 +134,18 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
     }
   }, [ready, material])
 
-  // Vuelo de cámara al foco
+  // Movimiento que descansa: anillos y arco animan ~6 s tras cada cambio y luego quedan quietos
+  // (nada se mueve indefinidamente; un loop lento sin fin cansa y distrae).
   const focusKey = focus?.key
+  const [lively, setLively] = useState(true)
+  useEffect(() => {
+    setLively(true)
+    const t = setTimeout(() => setLively(false), 6000)
+    return () => clearTimeout(t)
+  }, [focusKey])
+  const animate = lively && !reduced
+
+  // Vuelo de cámara al foco
   useEffect(() => {
     const g = globeRef.current
     if (!g || !ready || !focus) return
@@ -179,7 +189,7 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
     <>
     {!ready && (
       <div className="pointer-events-none absolute inset-0 grid place-items-center" aria-hidden>
-        <div className="h-[62%] max-h-[340px] aspect-square rounded-full border border-(--line-strong) bg-[radial-gradient(circle_at_35%_30%,var(--line-strong),transparent_65%)] animate-pulse" />
+        <div className="h-[62%] max-h-[340px] aspect-square rounded-full border border-(--line-strong) bg-[radial-gradient(circle_at_35%_30%,var(--line-strong),transparent_65%)] motion-safe:animate-pulse" />
       </div>
     )}
     <div
@@ -202,7 +212,7 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
           globeImageUrl={TEXTURE[body]}
           // Relieve solo en la Tierra (topografía real). Usar la textura de color como relieve
           // en la Luna/Marte inventaba sombras y marcaba los rayos del polo.
-          bumpImageUrl={body === 'earth' ? '/textures/earth-bump.png' : null}
+          bumpImageUrl={body === 'earth' ? '/textures/earth-bump.webp' : null}
           showAtmosphere
           atmosphereColor={atm.color}
           atmosphereAltitude={atm.alt}
@@ -215,7 +225,7 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
           htmlElement={(d: object) => (d as { el: HTMLElement }).el}
           htmlTransitionDuration={reduced ? 0 : 700}
           htmlElementVisibilityModifier={(el, visible) => el.classList.toggle('is-hidden', !visible)}
-          ringsData={rings}
+          ringsData={animate ? rings : []}
           ringLat="lat"
           ringLng="lng"
           ringColor={(r: object) => (t: number) => {
@@ -230,10 +240,10 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
           arcColor={() => ['rgba(255,255,255,0.15)', '#3987e5', '#9cc7ff']}
           arcAltitudeAutoScale={0.45}
           arcStroke={0.7}
-          arcDashLength={0.55}
-          arcDashGap={0.25}
-          arcDashInitialGap={1}
-          arcDashAnimateTime={reduced ? 0 : 2600}
+          arcDashLength={animate ? 0.55 : 1}
+          arcDashGap={animate ? 0.25 : 0}
+          arcDashInitialGap={animate ? 1 : 0}
+          arcDashAnimateTime={animate ? 2600 : 0}
           arcsTransitionDuration={reduced ? 0 : 900}
         />
       )}

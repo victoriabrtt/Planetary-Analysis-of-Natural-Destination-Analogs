@@ -3,3 +3,4 @@ backend/.venv/
 backend/data/raw/
 **/__pycache__/
 .pytest_cache/
+frontend/.taste-skill/

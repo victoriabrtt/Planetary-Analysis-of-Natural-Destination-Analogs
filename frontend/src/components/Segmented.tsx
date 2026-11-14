@@ -20,7 +20,7 @@ interface Props<T extends string> {
 
 /** Control segmentado con indicador que se desliza con resorte. */
 export default function Segmented<T extends string>({ id, value, options, onChange, ariaLabel, size = 'md', className = '' }: Props<T>) {
-  const pad = size === 'sm' ? 'px-3 h-8 text-[13px]' : 'px-4 h-10 text-sm'
+  const pad = size === 'sm' ? 'px-3 h-8 text-[13px]' : 'px-2.5 sm:px-4 h-10 text-[13px] sm:text-sm'
   return (
     <div
       role="radiogroup"
@@ -36,7 +36,7 @@ export default function Segmented<T extends string>({ id, value, options, onChan
             aria-checked={active}
             title={o.title}
             onClick={() => onChange(o.value)}
-            className={`press relative z-0 flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-medium tracking-[-0.01em] transition-colors ${pad} ${
+            className={`press relative z-0 flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-medium tracking-[-0.01em] transition-colors ${pad} ${
               active ? 'text-white' : 'text-(--muted) hover:text-(--fg)'
             }`}
           >
@@ -44,7 +44,7 @@ export default function Segmented<T extends string>({ id, value, options, onChan
               <motion.span
                 layoutId={`seg-${id}`}
                 transition={spring}
-                className="absolute inset-0 -z-10 rounded-full bg-accent shadow-[0_6px_20px_-6px_rgb(57_135_229/0.8),inset_0_1px_0_rgb(255_255_255/0.3)]"
+                className="absolute inset-0 -z-10 rounded-full bg-accent-fill shadow-[0_6px_20px_-6px_rgb(57_135_229/0.8),inset_0_1px_0_rgb(255_255_255/0.3)]"
               />
             )}
             {o.label}

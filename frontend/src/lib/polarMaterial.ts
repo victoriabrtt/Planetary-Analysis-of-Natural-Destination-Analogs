@@ -24,8 +24,8 @@ export function createPolarGlobeMaterial(body: Body): MeshPhongMaterial {
     t.anisotropy = 16 // three la limita al máximo de la GPU
     return t
   }
-  const capS = load(`/textures/caps/${body}_s.jpg`)
-  const capN = load(`/textures/caps/${body}_n.jpg`)
+  const capS = load(`/textures/caps/${body}_s.webp`)
+  const capN = load(`/textures/caps/${body}_n.webp`)
 
   const mat = new MeshPhongMaterial({ shininess: body === 'earth' ? 10 : 2 })
   mat.onBeforeCompile = (shader) => {

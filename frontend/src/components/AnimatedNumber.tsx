@@ -11,7 +11,7 @@ export default function AnimatedNumber({ value, className }: { value: number; cl
       mv.set(value)
       return
     }
-    const c = animate(mv, value, { type: 'spring', stiffness: 140, damping: 22 })
+    const c = animate(mv, value, { type: 'spring', bounce: 0, duration: 0.7 })
     return () => c.stop()
   }, [value, mv, reduced])
   return <motion.span className={className}>{text}</motion.span>

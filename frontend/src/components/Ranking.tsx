@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { VERDICTS, verdictOf } from '../engine/dimensions'
 import { fmtCoord, pct } from '../lib/format'
-import { spring } from '../lib/motion'
+import { spring, valueSpring } from '../lib/motion'
 import { useStore } from '../store/useStore'
 
 export default function Ranking() {
@@ -24,7 +24,7 @@ export default function Ranking() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
                   <span className="truncate text-sm font-medium tracking-[-0.01em]">{r.site.name}</span>
-                  <span className="tnum shrink-0 text-[11px] text-(--faint)">{fmtCoord(r.site.lat, r.site.lon)}</span>
+                  <span className="tnum hidden shrink-0 text-[11px] text-(--faint) sm:inline">{fmtCoord(r.site.lat, r.site.lon)}</span>
                 </div>
                 <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-(--track)">
                   <motion.div
@@ -32,7 +32,7 @@ export default function Ranking() {
                     style={{ background: v.color }}
                     initial={false}
                     animate={{ width: `${Math.max(2, pct(r.score))}%` }}
-                    transition={{ type: 'spring', stiffness: 140, damping: 22 }}
+                    transition={valueSpring}
                   />
                 </div>
               </div>

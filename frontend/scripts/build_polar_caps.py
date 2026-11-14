@@ -1,5 +1,5 @@
 """
-Genera las texturas de casquetes polares (public/textures/caps/{body}_{s,n}.jpg).
+Genera las texturas de casquetes polares (public/textures/caps/{body}_{s,n}.webp).
 
 Formato de salida (lo que espera el shader de GlobeView):
   - Proyección estereográfica polar, centrada en el polo, cuadrada N×N.
@@ -153,18 +153,21 @@ def build_moon(dl, out):
         rgb = matched[..., None] * tint[None, None, :]
         # Huecos sin dato → textura global.
         rgb = np.where(m[..., None], rgb, ref_rgb)
-        save(rgb, os.path.join(out, f"moon_{pole}.jpg"))
+        save(rgb, os.path.join(out, f"moon_{pole}.webp"))
 
 
 def build_from_equirect(dl, out, body, fname):
     eq = np.asarray(Image.open(os.path.join(dl, fname)).convert("RGB"))
     for pole in ("s", "n"):
         lat, lon, _ = out_grid(pole)
-        save(sample_equirect(eq, lat, lon), os.path.join(out, f"{body}_{pole}.jpg"))
+        save(sample_equirect(eq, lat, lon), os.path.join(out, f"{body}_{pole}.webp"))
 
 
 def save(rgb, path):
-    Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8)).save(path, quality=86, optimize=True, progressive=True)
+    im = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8))
+    if path.endswith("moon_s.webp") or path.endswith("moon_n.webp"):
+        im = im.resize((1536, 1536), Image.LANCZOS)  # detalle lunar real: 1536 px alcanzan con el zoom máximo
+    im.save(path, "WEBP", quality=76 if "moon" in path else 78, method=6)
     print(f"  → {path} ({os.path.getsize(path) / 1e6:.2f} MB)")
 
 

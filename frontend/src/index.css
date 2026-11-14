@@ -3,6 +3,8 @@
 @theme {
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --color-accent: #3987e5;
+  /* Relleno con texto blanco encima: #3987e5 da 3,6:1, este 4,95:1 (AA). */
+  --color-accent-fill: #2a6fcc;
   --color-strong: #0ca30c;
   --color-moderate: #d98a00;
   --color-weak: #ec835a;
@@ -16,7 +18,7 @@
   --bg-2: #0a0d1c;
   --fg: #f4f6fb;
   --muted: rgb(226 232 255 / 0.62);
-  --faint: rgb(226 232 255 / 0.4);
+  --faint: rgb(226 232 255 / 0.55); /* 5,3:1 sobre el glass (antes 3,3:1) */
   --glass: rgb(18 22 36 / 0.55);
   --glass-strong: rgb(24 28 46 / 0.78);
   --glass-hover: rgb(30 36 58 / 0.66);
@@ -26,7 +28,7 @@
   --track: rgb(255 255 255 / 0.07);
   --shadow: 0 24px 70px -28px rgb(0 0 0 / 0.85);
   --nebula-a: rgb(57 135 229 / 0.16);
-  --nebula-b: rgb(124 58 237 / 0.13);
+  --nebula-b: rgb(14 165 233 / 0.09);
   --star: 255 255 255;
 }
 
@@ -36,7 +38,7 @@
   --bg-2: #e3e8f4;
   --fg: #0b0e17;
   --muted: rgb(15 20 38 / 0.64);
-  --faint: rgb(15 20 38 / 0.46);
+  --faint: rgb(15 20 38 / 0.62); /* 5,0:1 (antes 3,0:1) */
   --glass: rgb(255 255 255 / 0.62);
   --glass-strong: rgb(255 255 255 / 0.82);
   --glass-hover: rgb(255 255 255 / 0.8);
@@ -46,13 +48,17 @@
   --track: rgb(15 23 42 / 0.07);
   --shadow: 0 24px 60px -30px rgb(30 40 80 / 0.35);
   --nebula-a: rgb(57 135 229 / 0.14);
-  --nebula-b: rgb(124 58 237 / 0.08);
+  --nebula-b: rgb(14 165 233 / 0.07);
   --star: 40 50 90;
 }
 
 html {
   background: var(--bg);
   color: var(--fg);
+  /* El cambio claro/oscuro se funde, sin salto brusco de brillo */
+  transition:
+    background-color 300ms ease,
+    color 300ms ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -60,6 +66,9 @@ html {
 body {
   min-height: 100dvh;
   font-family: var(--font-sans);
+  line-height: 1.5;
+  letter-spacing: 0;
+  font-optical-sizing: auto;
 }
 
 ::selection {
@@ -80,6 +89,9 @@ body {
     inset 0 1px 0 0 var(--line-top),
     var(--shadow);
   border-radius: 24px;
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease;
 }
 /* Luz fina arriba del borde */
 .glass::before {
@@ -100,16 +112,69 @@ body {
 }
 
 .press {
-  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 100ms ease-out;
+  touch-action: manipulation; /* sin la demora de doble toque */
 }
+/* El feedback vive en la presión, y es instantáneo */
 .press:active {
   transform: scale(0.97);
+}
+
+/* Objetivos táctiles de 44px en pantallas táctiles */
+@media (pointer: coarse) {
+  .press {
+    min-height: 44px;
+  }
+}
+
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: 12px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--color-accent-fill);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  transform: translateY(-160%);
+  transition: transform 150ms ease-out;
+}
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* Transparencia reducida: materiales sólidos */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .gm-label,
+  .gm-cluster {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .glass {
+    background: var(--glass-strong);
+  }
+}
+/* Más contraste: fondos casi sólidos y bordes definidos */
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme] {
+    --glass: var(--glass-strong);
+    --line: var(--line-strong);
+    --muted: var(--fg);
+  }
 }
 
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
   border-radius: 10px;
+}
+/* Destinos de foco programático (el skip link): reciben el foco sin anillo */
+[tabindex="-1"]:focus-visible {
+  outline: none;
 }
 
 .no-scrollbar {
@@ -139,7 +204,7 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .gm.is-hidden {
   opacity: 0 !important;
@@ -243,7 +308,8 @@ body {
   inset: -10px;
   border-radius: 50%;
   border: 1px solid rgb(156 199 255 / 0.6);
-  animation: gm-pulse 2.2s ease-out infinite;
+  animation: gm-pulse 2.2s ease-out 3;
+  opacity: 0;
 }
 @keyframes gm-pulse {
   from {
@@ -271,7 +337,7 @@ body {
   border-radius: 50%;
   background: var(--c);
   box-shadow: 0 0 8px var(--c);
-  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .gm-cluster i.is-hl {
   transform: scale(1.7);

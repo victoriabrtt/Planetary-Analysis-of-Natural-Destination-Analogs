@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { BODY_THE } from '../engine/data'
 import { VERDICTS, verdictOf } from '../engine/dimensions'
 import { fmtCoord, pct } from '../lib/format'
-import { spring } from '../lib/motion'
+import { spring, valueSpring } from '../lib/motion'
 import { targetBodyOf, useActiveProfile, useStore } from '../store/useStore'
 import AnimatedNumber from './AnimatedNumber'
 import VerdictBadge from './VerdictBadge'
@@ -12,7 +12,7 @@ export default function ResultHero() {
   const mode = useStore((s) => s.mode)
   const body = useStore((s) => s.body)
   const profile = useActiveProfile()
-  if (!result) return <div className="glass h-full min-h-[260px] animate-pulse" />
+  if (!result) return <div className="glass h-full min-h-[260px] motion-safe:animate-pulse" />
 
   const score = result.overall.score
   const v = VERDICTS[verdictOf(score)]
@@ -32,7 +32,7 @@ export default function ResultHero() {
         </span>
       </div>
 
-      <div className="mt-3 flex items-end gap-4">
+      <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-1">
         <div className="tnum flex items-start font-semibold leading-none tracking-[-0.06em]">
           <AnimatedNumber value={pct(score)} className="text-[88px] sm:text-[104px]" />
           <span className="mt-3 text-4xl tracking-[-0.03em] text-(--muted)">%</span>
@@ -48,7 +48,7 @@ export default function ResultHero() {
           style={{ background: `linear-gradient(90deg, ${v.color}aa, ${v.color})` }}
           initial={false}
           animate={{ width: `${Math.max(2, pct(score))}%` }}
-          transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+          transition={valueSpring}
         />
       </div>
 
@@ -62,7 +62,7 @@ export default function ResultHero() {
             exit={{ opacity: 0, y: -10, filter: 'blur(6px)' }}
             transition={spring}
           >
-            <h3 className="mt-1 text-[28px] font-semibold leading-tight tracking-[-0.035em] sm:text-[32px]">{site.name}</h3>
+            <h3 className="mt-1 text-[28px] font-semibold leading-tight tracking-[-0.035em] [overflow-wrap:anywhere] sm:text-[32px]">{site.name}</h3>
             <div className="tnum mt-1 text-sm text-(--faint)">{fmtCoord(site.lat, site.lon)}</div>
           </motion.div>
         </AnimatePresence>

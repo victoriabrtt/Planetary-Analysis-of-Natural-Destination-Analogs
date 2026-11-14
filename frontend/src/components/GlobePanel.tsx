@@ -116,7 +116,7 @@ export function SourcePanel() {
                     <motion.span
                       layoutId="chip-active"
                       transition={spring}
-                      className="absolute inset-0 -z-0 rounded-full bg-accent/90 shadow-[0_6px_18px_-6px_rgb(57_135_229/0.9)]"
+                      className="absolute inset-0 -z-0 rounded-full bg-accent-fill shadow-[0_6px_18px_-6px_rgb(57_135_229/0.9)]"
                     />
                   )}
                   <span className="relative">{s.name}</span>
