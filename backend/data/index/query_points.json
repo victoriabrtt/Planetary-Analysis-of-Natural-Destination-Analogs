@@ -145,7 +145,8 @@
         "roughness": 33.53,
         "relief": 202.8,
         "illum": 1.6
-      }
+      },
+      "name_en": "Harrat Khaybar, Saudi Arabia"
     },
     {
       "name": "Lanzarote, Canarias",
@@ -156,7 +157,8 @@
         "roughness": 68.67,
         "relief": 379.69,
         "illum": 5.6
-      }
+      },
+      "name_en": "Lanzarote, Canary Islands"
     },
     {
       "name": "Lava Beds, California",
@@ -167,7 +169,8 @@
         "roughness": 79.96,
         "relief": 761.84,
         "illum": 18.3
-      }
+      },
+      "name_en": "Lava Beds, California"
     },
     {
       "name": "Cráter Lonar, India",
@@ -178,7 +181,8 @@
         "roughness": 17.89,
         "relief": 111.95,
         "illum": 0.0
-      }
+      },
+      "name_en": "Lonar Crater, India"
     },
     {
       "name": "Isla Axel Heiberg, Canadá",
@@ -189,7 +193,8 @@
         "roughness": 254.01,
         "relief": 1637.66,
         "illum": 56.0
-      }
+      },
+      "name_en": "Axel Heiberg Island, Canada"
     },
     {
       "name": "Svalbard, Noruega",
@@ -200,7 +205,8 @@
         "roughness": 215.49,
         "relief": 787.74,
         "illum": 54.8
-      }
+      },
+      "name_en": "Svalbard, Norway"
     },
     {
       "name": "Cuenca de Qaidam, China",
@@ -211,7 +217,8 @@
         "roughness": 0.85,
         "relief": 4.6,
         "illum": 13.6
-      }
+      },
+      "name_en": "Qaidam Basin, China"
     },
     {
       "name": "Desierto del Namib",
@@ -222,7 +229,8 @@
         "roughness": 43.8,
         "relief": 258.62,
         "illum": 1.3
-      }
+      },
+      "name_en": "Namib Desert"
     },
     {
       "name": "Emi Koussi, Chad",
@@ -233,7 +241,8 @@
         "roughness": 174.53,
         "relief": 2078.26,
         "illum": 0.0
-      }
+      },
+      "name_en": "Emi Koussi, Chad"
     },
     {
       "name": "Cañón Fish River, Namibia",
@@ -244,7 +253,8 @@
         "roughness": 108.2,
         "relief": 511.72,
         "illum": 4.2
-      }
+      },
+      "name_en": "Fish River Canyon, Namibia"
     },
     {
       "name": "Parque Nacional del Teide, Canarias",
@@ -255,7 +265,8 @@
         "roughness": 384.66,
         "relief": 2646.34,
         "illum": 4.9
-      }
+      },
+      "name_en": "Teide National Park, Canary Islands"
     },
     {
       "name": "Meseta de Putorana, Rusia",
@@ -266,7 +277,8 @@
         "roughness": 166.72,
         "relief": 773.43,
         "illum": 45.6
-      }
+      },
+      "name_en": "Putorana Plateau, Russia"
     },
     {
       "name": "Isla Devon (cráter Haughton), Canadá",
@@ -277,7 +289,8 @@
         "roughness": 46.54,
         "relief": 325.33,
         "illum": 52.0
-      }
+      },
+      "name_en": "Devon Island (Haughton crater), Canada"
     },
     {
       "name": "Barreal, San Juan, Argentina",
@@ -288,7 +301,8 @@
         "roughness": 58.38,
         "relief": 908.89,
         "illum": 8.2
-      }
+      },
+      "name_en": "Barreal, San Juan, Argentina"
     },
     {
       "name": "Galápagos (tubos de lava)",
@@ -299,7 +313,8 @@
         "roughness": 64.85,
         "relief": 638.74,
         "illum": 0.0
-      }
+      },
+      "name_en": "Galápagos (lava tubes)"
     },
     {
       "name": "Valles Secos de McMurdo, Antártida",
@@ -310,7 +325,8 @@
         "roughness": 431.2,
         "relief": 1535.27,
         "illum": 54.1
-      }
+      },
+      "name_en": "McMurdo Dry Valleys, Antarctica"
     },
     {
       "name": "Desierto de Atacama, Chile",
@@ -321,7 +337,8 @@
         "roughness": 146.07,
         "relief": 1355.51,
         "illum": 1.1
-      }
+      },
+      "name_en": "Atacama Desert, Chile"
     },
     {
       "name": "Río Tinto, España",
@@ -332,7 +349,8 @@
         "roughness": 59.2,
         "relief": 330.12,
         "illum": 14.3
-      }
+      },
+      "name_en": "Río Tinto, Spain"
     },
     {
       "name": "Mauna Kea, Hawái",
@@ -343,7 +361,8 @@
         "roughness": 362.86,
         "relief": 2476.87,
         "illum": 0.0
-      }
+      },
+      "name_en": "Mauna Kea, Hawaii"
     },
     {
       "name": "Cráter Meteor, Arizona",
@@ -354,7 +373,8 @@
         "roughness": 17.75,
         "relief": 243.12,
         "illum": 11.63
-      }
+      },
+      "name_en": "Meteor Crater, Arizona"
     },
     {
       "name": "Islandia (campos de lava)",
@@ -365,7 +385,8 @@
         "roughness": 75.41,
         "relief": 417.41,
         "illum": 41.5
-      }
+      },
+      "name_en": "Iceland (lava fields)"
     },
     {
       "name": "Utah (Mars Desert Research Station)",
@@ -376,7 +397,8 @@
         "roughness": 43.38,
         "relief": 300.75,
         "illum": 15.01
-      }
+      },
+      "name_en": "Utah (Mars Desert Research Station)"
     }
   ]
 }

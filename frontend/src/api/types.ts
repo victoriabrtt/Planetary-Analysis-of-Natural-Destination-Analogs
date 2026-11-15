@@ -9,6 +9,8 @@ export interface MatchRequest {
   target_body: Body
   top_n: number
   weights: Weights
+  /** Opcional (extensión): idioma de textos y nombres de la respuesta. Por defecto "es". */
+  lang?: 'es' | 'en'
 }
 
 export interface SiteRef {

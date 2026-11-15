@@ -31,8 +31,8 @@ export async function matchAnalogs(req: MatchRequest, signal?: AbortSignal): Pro
 }
 
 /** Dimensiones, tolerancias y perfiles que define el backend. En modo mock no se llama. */
-export async function fetchMeta(): Promise<MetaResponse> {
-  const res = await fetch(`${API_BASE}/api/meta`)
+export async function fetchMeta(lang: 'es' | 'en' = 'es'): Promise<MetaResponse> {
+  const res = await fetch(`${API_BASE}/api/meta?lang=${lang}`)
   if (!res.ok) throw await apiError(res)
   return res.json()
 }
@@ -46,5 +46,9 @@ async function apiError(res: Response): Promise<ApiError> {
   } catch {
     /* no es JSON */
   }
-  return new ApiError(`No se pudo consultar el servidor (error ${res.status}). Probá de nuevo en un momento.`)
+  return new ApiError(
+    document.documentElement.lang === 'en'
+      ? `Could not reach the server (error ${res.status}). Try again in a moment.`
+      : `No se pudo consultar el servidor (error ${res.status}). Probá de nuevo en un momento.`,
+  )
 }

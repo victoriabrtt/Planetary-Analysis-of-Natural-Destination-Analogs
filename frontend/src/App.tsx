@@ -6,18 +6,21 @@ import DimensionCard from './components/DimensionCard'
 import { SourcePanel, TargetPanel } from './components/GlobePanel'
 import Header from './components/Header'
 import Intro from './components/Intro'
+import Method from './components/Method'
 import ProfileSelector from './components/ProfileSelector'
 import Ranking from './components/Ranking'
-import Method from './components/Method'
 import Reading from './components/Reading'
 import ResultActions from './components/ResultActions'
-import { startUrlSync } from './lib/urlState'
+import { useT } from './i18n'
 import { fmtCoord } from './lib/format'
+import { placeTitle } from './lib/labels'
 import { spring } from './lib/motion'
 import { useDelayedFlag } from './lib/useDelayedFlag'
+import { startUrlSync } from './lib/urlState'
 import { resultDims, useActiveProfile, useCandidate, useStore } from './store/useStore'
 
 export default function App() {
+  const t = useT()
   const theme = useStore((s) => s.theme)
   const result = useStore((s) => s.result)
   const catalog = useStore((s) => s.dims)
@@ -37,15 +40,19 @@ export default function App() {
     return stop
   }, [init])
 
+  const srcName = result ? (result.source.name ? placeTitle(result.source.name, t) : fmtCoord(result.source.lat, result.source.lon)) : ''
+  const candName = cand ? placeTitle(cand.site.name, t) : ''
+
   return (
     <MotionConfig reducedMotion="user" transition={spring}>
       <a href="#analogo" className="skip-link">
-        Saltar al resultado
+        {t('skip')}
       </a>
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8">
         <Header />
         <main className="flex flex-col gap-6">
           <Intro />
+          <ProfileSelector />
 
           <div className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
             <SourcePanel />
@@ -58,56 +65,45 @@ export default function App() {
           </div>
 
           {result && (
-            <>
-
-              <div
-                aria-busy={calculating}
-                className={`grid gap-x-8 gap-y-10 pt-4 transition-opacity duration-200 lg:grid-cols-[minmax(0,5fr)_minmax(0,9fr)] ${calculating ? 'opacity-50' : ''}`}
-              >
-                <div className="flex min-w-0 flex-col gap-6">
-                  <ProfileSelector />
-                  <Ranking />
-                  <Caveats compact />
+            <div aria-busy={calculating} className={`flex flex-col gap-12 pt-4 transition-opacity duration-200 ${calculating ? 'opacity-50' : ''}`}>
+              <section aria-labelledby="dims-title">
+                <h2 id="dims-title" className="display text-[24px]">
+                  {t('dims.title')}
+                </h2>
+                <p className="mt-1 max-w-[52rem] text-[16px] text-(--muted)">
+                  {t('dims.legend', { src: srcName || t('dims.source'), tgt: candName || t('dims.target') })}
+                </p>
+                <div className={`mt-5 grid gap-4 sm:grid-cols-2 [&>*]:min-w-0 ${dims.length % 4 === 0 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
+                  {dims.map((d) => {
+                    const best = result.perDim[d.key]
+                    return (
+                      <DimensionCard
+                        key={d.key}
+                        dim={d}
+                        best={best}
+                        winner={cand?.perDim[d.key] ?? { match: best.match, diff: best.diff, score: best.score }}
+                        sourceName={srcName}
+                        winnerName={candName}
+                        weight={profile.weights[d.key] ?? 1}
+                      />
+                    )
+                  })}
                 </div>
-    
-                <section aria-labelledby="dims-title" className="min-w-0">
-                  <h2 id="dims-title" className="display text-[24px] [text-wrap:balance]">
-                    Medida por medida
-                  </h2>
-                  <p className="mt-1 text-[16px] text-(--muted)">
-                    El anillo es {result?.source.name ?? 'el origen'}, el punto de color es {cand?.site.name ?? 'el análogo'} y la
-                    franja gris es la tolerancia de cada medida.
-                  </p>
-                  <div className="mt-5 grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
-                    {result
-                      ? dims.map((d) => {
-                          const best = result.perDim[d.key]
-                          return (
-                            <DimensionCard
-                              key={d.key}
-                              dim={d}
-                              best={best}
-                              winner={cand?.perDim[d.key] ?? { match: best.match, diff: best.diff, score: best.score }}
-                              sourceName={result.source.name ?? fmtCoord(result.source.lat, result.source.lon)}
-                              winnerName={cand?.site.name ?? result.overall.site.name}
-                              weight={profile.weights[d.key] ?? 1}
-                            />
-                          )
-                        })
-                      : null}
-                  </div>
-                  <div className="mt-6">
-                    <Method />
-                  </div>
-                </section>
+              </section>
+
+              <div className="grid gap-x-12 gap-y-12 lg:grid-cols-2 [&>*]:min-w-0">
+                <Ranking />
+                <Caveats compact />
               </div>
-            </>
+
+              <Method />
+            </div>
           )}
         </main>
 
         <footer className="kicker flex flex-col gap-1 border-t border-(--line) pb-2 pt-5 sm:flex-row sm:justify-between">
-          <span>{USE_MOCK ? 'Motor local de demostración' : 'Datos: LOLA (Luna), MOLA (Marte), ETOPO 2022 (Tierra)'}</span>
-          <span>Texturas: Solar System Scope (CC BY 4.0) · Polos lunares: LROC WAC, NASA/GSFC/ASU</span>
+          <span>{USE_MOCK ? t('footer.mock') : t('footer.data')}</span>
+          <span>{t('footer.textures')}</span>
         </footer>
       </div>
     </MotionConfig>

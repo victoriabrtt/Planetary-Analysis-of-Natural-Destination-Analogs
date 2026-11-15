@@ -109,3 +109,26 @@ export function verdictOf(score: number): VerdictKey {
   if (p >= 25) return 'weak'
   return 'broken'
 }
+
+/** Catálogo local (modo mock) en el idioma pedido: las mismas dimensiones y perfiles, traducidos. */
+const DIMS_EN: Record<string, { name: string; hint: string }> = {
+  terrain: { name: 'Slope', hint: 'Average steepness of the terrain' },
+  roughness: { name: 'Roughness', hint: 'How much the ground rises and falls around its tilt' },
+  composition: { name: 'Iron (FeO)', hint: 'Iron oxide on the surface' },
+  craters: { name: 'Craters', hint: 'Craters larger than 1 km per million km²' },
+  illum: { name: 'Illumination', hint: 'How low the sun sits at its best time of year' },
+  caves: { name: 'Caves', hint: 'Likelihood of lava tubes and cavities (0 to 1)' },
+}
+const PROFILES_EN: Record<string, { name: string; blurb: string }> = {
+  balanced: { name: 'Balanced', blurb: 'Every measure weighs the same' },
+  rover: { name: 'Rover', blurb: 'Mobility: slope, roughness and craters' },
+  thermal: { name: 'Thermal', blurb: 'Illumination and soil composition' },
+  habitat: { name: 'Habitat / caves', blurb: 'Natural shelter in lava tubes' },
+}
+export function localCatalog(lang: 'es' | 'en'): { dims: Dimension[]; profiles: Profile[] } {
+  if (lang === 'es') return { dims: DIMS, profiles: PROFILES }
+  return {
+    dims: DIMS.map((d) => ({ ...d, ...DIMS_EN[d.key], short: DIMS_EN[d.key]?.name ?? d.short })),
+    profiles: PROFILES.map((p) => ({ ...p, ...PROFILES_EN[p.id] })),
+  }
+}

@@ -1,5 +1,5 @@
 // Motor de cercanía: el algoritmo real, sobre el dataset semilla.
-import { CAVEATS } from './data'
+import { CAVEATS, CAVEATS_EN } from './data'
 import { DIMS, closeness } from './dimensions'
 import { candidates, fingerprint } from './fingerprint'
 import type { DimMatch, MatchRequest, MatchResponse, SiteRef } from '../api/types'
@@ -55,7 +55,7 @@ export function computeMatch(req: MatchRequest): MatchResponse {
       qualifying: { count: qual.length, share: qual.length / scored.length, sample: qual.map((s) => [s.c.lat, s.c.lon]) },
     },
     perDim,
-    caveats: CAVEATS,
+    caveats: req.lang === 'en' ? CAVEATS_EN : CAVEATS,
     ranking: scored.slice(0, req.top_n).map((s) => ({ site: ref(s.c), score: s.total, perDim: candDims(s) })),
   }
 }

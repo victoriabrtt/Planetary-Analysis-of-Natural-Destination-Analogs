@@ -2,7 +2,9 @@ import { create } from 'zustand'
 import { ApiError, USE_MOCK, fetchMeta, matchAnalogs } from '../api/client'
 import type { CandidateDim, MatchResponse, SiteRef } from '../api/types'
 import { EARTH, FAMOUS, type Body } from '../engine/data'
-import { DIMS, PROFILES, dimFromMeta, fallbackDim, profileWeights, type DimKey, type Dimension, type Profile } from '../engine/dimensions'
+import { PROFILES, dimFromMeta, fallbackDim, localCatalog, profileWeights, type DimKey, type Dimension, type Profile } from '../engine/dimensions'
+import { initialLang, translate, type Lang } from '../i18n'
+import { setFormatLang } from '../lib/format'
 
 export type Mode = 'forward' | 'inverse'
 export type OffBody = 'moon' | 'mars'
@@ -27,6 +29,7 @@ interface State {
   /** Puesto del ranking que se está mirando (null = el ganador). Cambia el panel, las cards y el globo. */
   inspectIdx: number | null
   theme: Theme
+  lang: Lang
   /** Catálogo activo: local (mock) o el que define el backend (GET /api/meta). */
   dims: Dimension[]
   profiles: Profile[]
@@ -41,6 +44,7 @@ interface State {
   setHoveredDim: (d: DimKey | null) => void
   setInspect: (i: number | null) => void
   toggleTheme: () => void
+  setLang: (l: Lang) => void
   run: () => Promise<void>
 }
 
@@ -57,6 +61,9 @@ function defaultPoint(mode: Mode, body: OffBody): Point {
 const initialTheme: Theme =
   typeof localStorage !== 'undefined' && localStorage.getItem('theme') === 'light' ? 'light' : 'dark'
 
+const startLang = initialLang()
+setFormatLang(startLang)
+
 let reqId = 0
 let controller: AbortController | null = null
 
@@ -72,14 +79,20 @@ export const useStore = create<State>((set, get) => ({
   hoveredDim: null,
   inspectIdx: null,
   theme: initialTheme,
-  dims: DIMS,
-  profiles: PROFILES,
+  lang: startLang,
+  dims: localCatalog(startLang).dims,
+  profiles: localCatalog(startLang).profiles,
   bodies: null,
 
   init: async () => {
-    if (!USE_MOCK) {
+    const lang = get().lang
+    setFormatLang(lang)
+    document.documentElement.lang = lang
+    if (USE_MOCK) {
+      set(localCatalog(lang))
+    } else {
       try {
-        const meta = await fetchMeta()
+        const meta = await fetchMeta(lang)
         const profiles = meta.profiles.length ? meta.profiles : PROFILES
         set({
           dims: meta.dims.map(dimFromMeta),
@@ -88,7 +101,7 @@ export const useStore = create<State>((set, get) => ({
           profileId: profiles.some((p) => p.id === get().profileId) ? get().profileId : profiles[0].id,
         })
       } catch (e) {
-        set({ error: `No se pudo leer /api/meta: ${e instanceof Error ? e.message : String(e)}` })
+        set({ error: translate(lang, 'error.meta', { msg: e instanceof Error ? e.message : String(e) }) })
         return
       }
     }
@@ -117,6 +130,12 @@ export const useStore = create<State>((set, get) => ({
   },
   setHoveredDim: (hoveredDim) => set({ hoveredDim }),
   setInspect: (i) => set({ inspectIdx: i && i > 0 ? i : null }),
+  setLang: (lang) => {
+    if (lang === get().lang) return
+    localStorage.setItem('lang', lang)
+    set({ lang })
+    void get().init() // textos del backend (dimensiones, perfiles, caveats, nombres) en el idioma nuevo
+  },
   toggleTheme: () => {
     const theme: Theme = get().theme === 'dark' ? 'light' : 'dark'
     localStorage.setItem('theme', theme)
@@ -139,6 +158,7 @@ export const useStore = create<State>((set, get) => ({
           target_body: targetBodyOf(mode, body),
           top_n: 5,
           weights: profileWeights(profile, dims),
+          lang: get().lang,
         },
         controller.signal,
       )

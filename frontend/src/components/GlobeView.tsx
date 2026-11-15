@@ -5,6 +5,7 @@ import type { DimKey } from '../engine/dimensions'
 import { createPolarGlobeMaterial } from '../lib/polarMaterial'
 import { useReducedMotion } from '../lib/useReducedMotion'
 import { useStore } from '../store/useStore'
+import { useT } from '../i18n'
 
 export type MarkerKind = 'famous' | 'selected' | 'overall' | 'dims' | 'origin'
 
@@ -104,8 +105,9 @@ const HAS_WEBGL = (() => {
 })()
 
 function StillGlobe({ body, label }: { body: Body; label: string }) {
+  const t = useT()
   return (
-    <div className="absolute inset-0 grid place-items-center" role="img" aria-label={`${label} (vista fija: este navegador no tiene WebGL)`}>
+    <div className="absolute inset-0 grid place-items-center" role="img" aria-label={t('still', { label })}>
       <div
         className="aspect-square h-[62%] max-h-[340px] rounded-full border border-(--line)"
         style={{ backgroundImage: `url(${TEXTURE[body]})`, backgroundSize: '200% 100%', backgroundPosition: 'center' }}

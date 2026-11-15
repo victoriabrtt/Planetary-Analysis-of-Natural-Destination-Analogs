@@ -91,6 +91,10 @@ li {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
 }
+/* Números dentro de frases: la fuente de texto, con cifras tabulares (mono solo en datos) */
+.num {
+  font-variant-numeric: tabular-nums;
+}
 /* Cifras grandes en la display, también tabulares */
 .figure {
   font-family: var(--font-sans);

@@ -9,6 +9,7 @@ interface UrlQuery {
   lat: number
   lon: number
   profileId: string
+  lang: 'es' | 'en'
 }
 
 function read(): Partial<UrlQuery> {
@@ -27,11 +28,12 @@ function read(): Partial<UrlQuery> {
     lat: lat != null && Math.abs(lat) <= 90 ? lat : undefined,
     lon: lon != null && Math.abs(lon) <= 180 ? lon : undefined,
     profileId: h.get('p') ?? undefined,
+    lang: h.get('l') === 'en' || h.get('l') === 'es' ? (h.get('l') as 'es' | 'en') : undefined,
   }
 }
 
 function write(q: UrlQuery, push: boolean) {
-  const hash = `#m=${q.mode}&b=${q.body}&lat=${q.lat.toFixed(3)}&lon=${q.lon.toFixed(3)}&p=${q.profileId}`
+  const hash = `#m=${q.mode}&b=${q.body}&lat=${q.lat.toFixed(3)}&lon=${q.lon.toFixed(3)}&p=${q.profileId}&l=${q.lang}`
   if (hash === window.location.hash) return
   if (push) window.history.pushState(null, '', hash)
   else window.history.replaceState(null, '', hash)
@@ -46,19 +48,20 @@ export function startUrlSync() {
     body: q.body ?? s.body,
     point: q.lat != null && q.lon != null ? { lat: q.lat, lon: q.lon } : s.point,
     profileId: q.profileId ?? s.profileId,
+    lang: q.lang ?? s.lang,
   })
 
   let applying = false
   const snapshot = (): UrlQuery => {
     const st = useStore.getState()
-    return { mode: st.mode, body: st.body, lat: st.point.lat, lon: st.point.lon, profileId: st.profileId }
+    return { mode: st.mode, body: st.body, lat: st.point.lat, lon: st.point.lon, profileId: st.profileId, lang: st.lang }
   }
   write(snapshot(), false)
 
   const unsub = useStore.subscribe((st, prev) => {
     if (applying) return
     const moved = st.point !== prev.point || st.mode !== prev.mode || st.body !== prev.body
-    if (moved || st.profileId !== prev.profileId) write(snapshot(), moved)
+    if (moved || st.profileId !== prev.profileId || st.lang !== prev.lang) write(snapshot(), moved)
   })
 
   const onPop = () => {

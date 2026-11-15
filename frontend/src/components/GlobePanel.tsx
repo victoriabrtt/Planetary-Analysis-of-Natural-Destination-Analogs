@@ -1,16 +1,17 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { BODY_LABEL, BODY_THE } from '../engine/data'
 import { VERDICTS, verdictOf, type DimKey } from '../engine/dimensions'
 import { angularDist, knownSites } from '../engine/fingerprint'
-import { fmtCoord, fmtNum, fmtShare, fmtVal, pctScore, placeTitle } from '../lib/format'
+import { useT } from '../i18n'
+import { fmtCoord, fmtNum, fmtShare, fmtVal, pctScore } from '../lib/format'
+import { placeTitle, rankLabels } from '../lib/labels'
 import { spring } from '../lib/motion'
+import { useDelayedFlag } from '../lib/useDelayedFlag'
 import { resultDims, sourceBodyOf, targetBodyOf, useCandidate, useStore } from '../store/useStore'
 import AnimatedNumber from './AnimatedNumber'
-import GlobeView, { type Marker } from './GlobeView'
 import CoordForm from './CoordForm'
+import GlobeView, { type Marker } from './GlobeView'
 import VerdictBadge from './VerdictBadge'
-import { useDelayedFlag } from '../lib/useDelayedFlag'
 
 /** Panel de instrumento: el título es el lugar; debajo, el cuerpo y las coordenadas como lectura. */
 function PanelShell({ title, reading, aside, children, footer, label }: {
@@ -25,18 +26,21 @@ function PanelShell({ title, reading, aside, children, footer, label }: {
     <section className="card flex flex-col overflow-hidden" aria-label={label}>
       <div className="relative z-10 flex items-start justify-between gap-4 px-6 pt-5">
         <div className="min-w-0">
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.h2
-              key={title}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={spring}
-              className="display text-[26px] [overflow-wrap:anywhere] [text-wrap:balance]"
-            >
-              {title}
-            </motion.h2>
-          </AnimatePresence>
+          {/* Un solo h2: lo que se anima es su contenido, así nunca hay dos títulos a la vez. */}
+          <h2 className="display text-[26px] [overflow-wrap:anywhere] [text-wrap:balance]">
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={title}
+                className="block"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={spring}
+              >
+                {title}
+              </motion.span>
+            </AnimatePresence>
+          </h2>
           <p className="tnum mt-1 text-[13px] text-(--muted)">{reading}</p>
         </div>
         {aside}
@@ -48,6 +52,7 @@ function PanelShell({ title, reading, aside, children, footer, label }: {
 }
 
 export function SourcePanel() {
+  const t = useT()
   const mode = useStore((s) => s.mode)
   const body = useStore((s) => s.body)
   const point = useStore((s) => s.point)
@@ -77,17 +82,18 @@ export function SourcePanel() {
     [sites, src, point, selectPoint],
   )
 
-  const name = activeSite?.name ?? (result?.source.name ? placeTitle(result.source.name) : 'Punto elegido')
+  const name = activeSite?.name ?? (result?.source.name ? placeTitle(result.source.name, t) : t('source.picked'))
+  const bodyName = t(`body.${src}`)
 
   return (
     <PanelShell
-      label={`Origen en ${BODY_LABEL[src]}`}
+      label={t('source.label', { body: bodyName })}
       title={name}
-      reading={`${BODY_LABEL[src]} · ${fmtCoord(point.lat, point.lon)}`}
+      reading={`${bodyName} · ${fmtCoord(point.lat, point.lon)}`}
       footer={
         <div className="flex flex-col gap-3">
-          <p className="text-[14px] text-(--muted)">Hacé clic en cualquier punto del globo, elegí un sitio conocido o escribí coordenadas.</p>
-          <ul className="flex flex-wrap gap-1.5" aria-label={`Sitios conocidos de ${BODY_LABEL[src]}`}>
+          <p className="text-[14px] text-(--muted)">{t('source.howTo')}</p>
+          <ul className="flex flex-wrap gap-1.5" aria-label={t('source.sites', { body: bodyName })}>
             {shown.map((s) => {
               const active = activeSite?.name === s.name
               return (
@@ -111,7 +117,7 @@ export function SourcePanel() {
                   onClick={() => setShowAll(true)}
                   className="press rounded-md px-3 py-1.5 text-[14px] font-medium text-accent underline-offset-4 hover:underline"
                 >
-                  Ver los {sites.length} sitios
+                  {t('source.showAll', { n: sites.length })}
                 </button>
               </li>
             )}
@@ -127,15 +133,16 @@ export function SourcePanel() {
         rings={[{ lat: point.lat, lng: point.lon, color: '#3987e5' }]}
         focus={{ lat: point.lat, lon: point.lon, altitude: 1.8, key: `${src}:${point.lat}:${point.lon}` }}
         onPick={(lat, lon) => selectPoint(lat, lon)}
-        ariaLabel={`Globo de ${BODY_LABEL[src]}. Hacé clic para elegir un punto de origen.`}
+        ariaLabel={t('source.globe', { body: bodyName })}
       />
     </PanelShell>
   )
 }
 
 /** El panel destino ES la respuesta: el lugar que se está mirando (el ganador o un puesto del
- *  ranking), su cercanía, cómo le va en cada medida y cuánta Tierra califica igual de bien. */
+ *  ranking), su cercanía con el veredicto calificado, qué tan raro es y cómo le va en cada medida. */
 export function TargetPanel() {
+  const t = useT()
   const mode = useStore((s) => s.mode)
   const body = useStore((s) => s.body)
   const result = useStore((s) => s.result)
@@ -147,10 +154,13 @@ export function TargetPanel() {
   const selectPoint = useStore((s) => s.selectPoint)
   const calculating = useDelayedFlag(useStore((s) => s.loading))
   const catalog = useStore((s) => s.dims)
+  const lang = useStore((s) => s.lang)
   const cand = useCandidate()
   const dims = useMemo(() => resultDims(catalog, result), [catalog, result])
   const tgt = targetBodyOf(mode, body)
   const qual = result?.overall.qualifying
+  const bodyName = t(`body.${tgt}`)
+  const bodyThe = t(`the.${tgt}`)
 
   const { markers, arcs, rings } = useMemo(() => {
     if (!result || !cand) return { markers: [] as Marker[], arcs: [], rings: [] }
@@ -163,36 +173,75 @@ export function TargetPanel() {
       g.dims.push(d.key)
       groups.set(s.name, g)
     }
-    const ms: Marker[] = [{ id: 'origin', lat: result.source.lat, lon: result.source.lon, kind: 'origin', label: 'Origen proyectado' }]
+    const ms: Marker[] = [{ id: 'origin', lat: result.source.lat, lon: result.source.lon, kind: 'origin', label: t('origin.projected') }]
     for (const [name, g] of groups) {
       if (g.lat === o.lat && g.lon === o.lon) continue
       ms.push({ id: `d-${name}`, lat: g.lat, lon: g.lon, kind: 'dims', label: name, dims: g.dims, colors: g.dims.map(colorOf) })
     }
-    ms.push({ id: 'overall', lat: o.lat, lon: o.lon, kind: 'overall', label: o.name })
+    ms.push({ id: 'overall', lat: o.lat, lon: o.lon, kind: 'overall', label: placeTitle(o.name, t) })
     return {
       markers: ms,
       arcs: [{ startLat: result.source.lat, startLng: result.source.lon, endLat: o.lat, endLng: o.lon }],
       rings: [{ lat: o.lat, lng: o.lon, color: '#9cc7ff' }],
     }
-  }, [result, dims, cand])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, dims, cand?.site.lat, cand?.site.lon, lang])
 
   const o = cand?.site
   const toggleDim = (k: DimKey) => setHoveredDim(hoveredDim === k ? null : k)
+  const title = o
+    ? cand.rank > 1 && result?.ranking
+      ? rankLabels(result.ranking, tgt, t)[cand.rank - 1]
+      : placeTitle(o.name, t)
+    : error
+      ? t('target.none')
+      : t('target.calculating')
+
+  // Veredicto calificado: el promedio no esconde una medida que se rompe.
+  const verdicts = cand ? dims.map((d) => ({ d, k: verdictOf((cand.perDim[d.key] ?? result!.perDim[d.key]).score) })) : []
+  const okCount = verdicts.filter((v) => v.k === 'strong').length
+  const broken = verdicts.filter((v) => v.k === 'broken').map((v) => v.d.name.toLowerCase())
+  const list = (xs: string[]) => xs.join(', ')
+  const rarity = !qual
+    ? null
+    : qual.count === 0
+      ? t('target.rarity.none')
+      : qual.count === 1
+        ? t('target.rarity.unique')
+        : qual.share >= 0.05
+          ? t('target.rarity.common', { share: fmtShare(qual.share), body: bodyThe })
+          : qual.share < 0.0001
+            ? t('target.rarity.rareFew', { n: fmtNum(qual.count), body: bodyThe })
+            : t('target.rarity.rare', { n: fmtNum(qual.count), share: fmtShare(qual.share), body: bodyThe })
 
   return (
     <div id="analogo" tabIndex={-1} className="scroll-mt-4 rounded-[20px]">
       <PanelShell
-        label={`Análogo en ${BODY_LABEL[tgt]}`}
-        title={o ? placeTitle(o.name) : error ? 'Sin análogo para ese punto' : 'Calculando…'}
-        reading={calculating ? 'Calculando…' : o ? `${BODY_LABEL[tgt]} · ${fmtCoord(o.lat, o.lon)}` : BODY_LABEL[tgt]}
+        label={t('target.label', { body: bodyName })}
+        title={title}
+        reading={calculating ? t('target.calculating') : o ? `${bodyName} · ${fmtCoord(o.lat, o.lon)}` : bodyName}
         aside={
           cand && (
-            <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <div className="flex max-w-[15rem] shrink-0 flex-col items-end gap-1.5 text-right">
               <span className="figure text-[40px] leading-none">
                 <AnimatedNumber value={pctScore(cand.score)} />
                 <span className="text-(--muted)">%</span>
               </span>
-              <VerdictBadge score={cand.score} />
+              {broken.length > 0 && verdictOf(cand.score) === 'strong' ? (
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-(--line) px-2.5 py-1 text-[14px] font-medium">
+                  <span className="h-2 w-2 rounded-full" style={{ background: VERDICTS.strong.color }} aria-hidden />
+                  {t('target.strongIn', { ok: okCount, n: dims.length })}
+                </span>
+              ) : (
+                <VerdictBadge score={cand.score} size="md" />
+              )}
+              {broken.length > 0 && (
+                <span className="flex items-center gap-1.5 text-[13px]">
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: VERDICTS.broken.color }} aria-hidden />
+                  {t('target.breaksIn', { dims: list(broken) })}
+                </span>
+              )}
+              {cand.rank === 1 && rarity && <span className="text-[13px] text-(--muted)">{rarity}</span>}
             </div>
           )
         }
@@ -200,32 +249,18 @@ export function TargetPanel() {
           result &&
           cand && (
             <div className="flex flex-col gap-3">
-              {cand.rank > 1 ? (
+              {cand.rank > 1 && (
                 <p className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[14px]">
-                  <span className="text-(--muted)">Estás viendo el puesto {cand.rank} del ranking.</span>
+                  <span className="text-(--muted)">{t('target.viewing', { n: cand.rank })}</span>
                   <button onClick={() => setInspect(null)} className="press font-medium text-accent underline-offset-4 hover:underline">
-                    Volver al más parecido
+                    {t('target.back')}
                   </button>
                 </p>
-              ) : (
-                qual && (
-                  <p className="text-[14px] text-(--muted)">
-                    {qual.count === 0 ? (
-                      <>Ningún otro lugar de {BODY_THE[tgt]} llega a «Fuerte».</>
-                    ) : (
-                      <>
-                        <span className="tnum text-(--fg)">{fmtNum(qual.count)}</span> {qual.count === 1 ? 'celda califica' : 'celdas califican'}{' '}
-                        como análogo fuerte: <span className="tnum text-(--fg)">{fmtShare(qual.share)}</span> de {BODY_THE[tgt]}. Son los
-                        puntos celestes del globo.
-                      </>
-                    )}
-                  </p>
-                )
               )}
-              <ul className="grid gap-x-6 sm:grid-cols-2" aria-label="Cómo se compara en cada medida">
+              <ul className="grid gap-x-6 sm:grid-cols-2" aria-label={t('target.measures')}>
                 {dims.map((d) => {
                   const w = cand.perDim[d.key] ?? result.perDim[d.key]
-                  const v = VERDICTS[verdictOf(w.score)]
+                  const k = verdictOf(w.score)
                   const on = hoveredDim === d.key
                   return (
                     <li key={d.key} className="border-b border-(--line)">
@@ -243,9 +278,11 @@ export function TargetPanel() {
                           <span className="truncate">{d.name}</span>
                         </span>
                         <span className="flex shrink-0 items-center gap-2 text-(--muted)">
-                          <span className="tnum">dif. {fmtVal(d, w.diff)}</span>
-                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: v.color }} aria-hidden />
-                          <span className="text-(--fg)">{v.label}</span>
+                          <span className="tnum">
+                            {t('target.diff')} {fmtVal(d, w.diff)}
+                          </span>
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: VERDICTS[k].color }} aria-hidden />
+                          <span className="text-(--fg)">{t(`verdict.${k}`)}</span>
                         </span>
                       </button>
                     </li>
@@ -269,16 +306,17 @@ export function TargetPanel() {
               ? { lat: o.lat, lon: o.lon, altitude: 2.1, key: `${tgt}:${o.name}:${o.lat}:${o.lon}:${result.source.lat}:${result.source.lon}` }
               : undefined
           }
-          ariaLabel={o ? `Globo de ${BODY_LABEL[tgt]} con el análogo en ${o.name}.` : `Globo de ${BODY_LABEL[tgt]}`}
+          ariaLabel={o ? t('target.globe', { body: bodyName, place: placeTitle(o.name, t) }) : t('target.globeEmpty', { body: bodyName })}
         />
         {result && (
-          <ul className="pointer-events-none absolute bottom-3 left-4 flex flex-col gap-1 text-[13px] text-(--muted)" aria-label="Leyenda del globo">
+          <ul className="pointer-events-none absolute bottom-3 left-4 flex flex-col gap-1 text-[13px] text-(--muted)" aria-label={t('target.legend')}>
             <li className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full border-2 border-dashed border-(--muted)" aria-hidden /> Origen proyectado sobre {BODY_THE[tgt]}
+              <span className="h-2.5 w-2.5 rounded-full border-2 border-dashed border-(--muted)" aria-hidden />{' '}
+              {t('target.legendOrigin', { body: bodyThe })}
             </li>
             {!!qual?.count && (
               <li className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#9cc7ff]" aria-hidden /> Califican como análogo fuerte
+                <span className="h-2 w-2 rounded-full bg-[#9cc7ff]" aria-hidden /> {t('target.legendQual')}
               </li>
             )}
           </ul>
@@ -292,7 +330,7 @@ export function TargetPanel() {
                   onClick={() => selectPoint(nearest.lat, nearest.lon)}
                   className="press mt-5 rounded-lg bg-accent px-4 py-2.5 text-[15px] font-medium text-(--accent-ink) transition-[filter] hover:brightness-110"
                 >
-                  Usar el punto con datos más cercano
+                  {t('target.useNearest')}
                 </button>
               )}
             </div>

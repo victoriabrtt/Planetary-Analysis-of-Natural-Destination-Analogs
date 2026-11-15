@@ -54,29 +54,30 @@ FAMOUS = {
 }
 
 # Análogos terrestres conocidos: si una celda cae cerca, se usa este nombre (etiquetado a mano).
+# (español, inglés, lat, lon)
 EARTH_SITES = [
-    ("Harrat Khaybar, Arabia Saudita", 25.0, 39.9),
-    ("Lanzarote, Canarias", 29.0, -13.6),
-    ("Lava Beds, California", 41.7, -121.5),
-    ("Cráter Lonar, India", 19.9, 76.5),
-    ("Isla Axel Heiberg, Canadá", 79.4, -90.8),
-    ("Svalbard, Noruega", 78.2, 15.6),
-    ("Cuenca de Qaidam, China", 37.0, 95.0),
-    ("Desierto del Namib", -24.7, 15.3),
-    ("Emi Koussi, Chad", 19.8, 18.5),
-    ("Cañón Fish River, Namibia", -27.6, 17.6),
-    ("Parque Nacional del Teide, Canarias", 28.3, -16.6),
-    ("Meseta de Putorana, Rusia", 69.0, 94.0),
-    ("Isla Devon (cráter Haughton), Canadá", 75.4, -89.8),
-    ("Barreal, San Juan, Argentina", -31.6, -69.4),
-    ("Galápagos (tubos de lava)", -0.6, -90.4),
-    ("Valles Secos de McMurdo, Antártida", -77.5, 162.0),
-    ("Desierto de Atacama, Chile", -24.5, -69.25),
-    ("Río Tinto, España", 37.7, -6.55),
-    ("Mauna Kea, Hawái", 19.82, -155.47),
-    ("Cráter Meteor, Arizona", 35.03, -111.02),
-    ("Islandia (campos de lava)", 64.9, -16.8),
-    ("Utah (Mars Desert Research Station)", 38.41, -110.79),
+    ("Harrat Khaybar, Arabia Saudita", "Harrat Khaybar, Saudi Arabia", 25.0, 39.9),
+    ("Lanzarote, Canarias", "Lanzarote, Canary Islands", 29.0, -13.6),
+    ("Lava Beds, California", "Lava Beds, California", 41.7, -121.5),
+    ("Cráter Lonar, India", "Lonar Crater, India", 19.9, 76.5),
+    ("Isla Axel Heiberg, Canadá", "Axel Heiberg Island, Canada", 79.4, -90.8),
+    ("Svalbard, Noruega", "Svalbard, Norway", 78.2, 15.6),
+    ("Cuenca de Qaidam, China", "Qaidam Basin, China", 37.0, 95.0),
+    ("Desierto del Namib", "Namib Desert", -24.7, 15.3),
+    ("Emi Koussi, Chad", "Emi Koussi, Chad", 19.8, 18.5),
+    ("Cañón Fish River, Namibia", "Fish River Canyon, Namibia", -27.6, 17.6),
+    ("Parque Nacional del Teide, Canarias", "Teide National Park, Canary Islands", 28.3, -16.6),
+    ("Meseta de Putorana, Rusia", "Putorana Plateau, Russia", 69.0, 94.0),
+    ("Isla Devon (cráter Haughton), Canadá", "Devon Island (Haughton crater), Canada", 75.4, -89.8),
+    ("Barreal, San Juan, Argentina", "Barreal, San Juan, Argentina", -31.6, -69.4),
+    ("Galápagos (tubos de lava)", "Galápagos (lava tubes)", -0.6, -90.4),
+    ("Valles Secos de McMurdo, Antártida", "McMurdo Dry Valleys, Antarctica", -77.5, 162.0),
+    ("Desierto de Atacama, Chile", "Atacama Desert, Chile", -24.5, -69.25),
+    ("Río Tinto, España", "Río Tinto, Spain", 37.7, -6.55),
+    ("Mauna Kea, Hawái", "Mauna Kea, Hawaii", 19.82, -155.47),
+    ("Cráter Meteor, Arizona", "Meteor Crater, Arizona", 35.03, -111.02),
+    ("Islandia (campos de lava)", "Iceland (lava fields)", 64.9, -16.8),
+    ("Utah (Mars Desert Research Station)", "Utah (Mars Desert Research Station)", 38.41, -110.79),
 ]
 EARTH_SITE_RADIUS_KM = 60.0
 
@@ -151,8 +152,10 @@ def _flatten(c):
     return out
 
 
-def earth_names(lat: np.ndarray, lon: np.ndarray) -> tuple[np.ndarray, list[str]]:
-    """Nombre legible para cada celda: sitio curado > región geográfica + país > país > coordenadas."""
+def earth_names(lat: np.ndarray, lon: np.ndarray, lang: str = "es") -> tuple[np.ndarray, list[str]]:
+    """Nombre legible para cada celda: sitio curado > región geográfica + país > país > coordenadas.
+    lang "es" usa NAME_ES de Natural Earth; "en", NAME."""
+    keys = ("name_es", "NAME_ES", "name", "NAME") if lang == "es" else ("NAME_EN", "name_en", "NAME", "name")  # NAME abrevia ("Ra.", "I.")
     from rasterio.features import rasterize
     from rasterio.transform import from_origin
 
@@ -173,11 +176,9 @@ def earth_names(lat: np.ndarray, lon: np.ndarray) -> tuple[np.ndarray, list[str]
             for f in _geoms(RAW / "ne_10m_geography_regions_polys.geojson")
             if f["properties"].get("FEATURECLA") not in SKIP_REGION_CLASSES
         ],
-        lambda p: _prop(p, "name_es", "NAME_ES", "name", "NAME"),
+        lambda p: _prop(p, *keys),
     )
-    countries, cnames = raster_ids(
-        _geoms(RAW / "ne_50m_admin_0_countries.geojson"), lambda p: _prop(p, "NAME_ES", "name_es", "NAME", "name")
-    )
+    countries, cnames = raster_ids(_geoms(RAW / "ne_50m_admin_0_countries.geojson"), lambda p: _prop(p, *keys))
     countries = _fill_nearest(countries, max_iter=30)  # costas e islas fuera del polígono 1:50m (≤ 3°)
     r = np.clip(((90 - lat) / res).astype(int), 0, shape[0] - 1)
     c = np.clip(((lon + 180) / res).astype(int), 0, shape[1] - 1)
@@ -187,7 +188,7 @@ def earth_names(lat: np.ndarray, lon: np.ndarray) -> tuple[np.ndarray, list[str]
     la, lo = np.radians(lat), np.radians(lon)
     site_idx = np.full(lat.shape, -1)
     best = np.full(lat.shape, np.inf)
-    for k, (_, slat, slon) in enumerate(EARTH_SITES):
+    for k, (_, _, slat, slon) in enumerate(EARTH_SITES):
         d = 6371.0 * np.arccos(
             np.clip(
                 np.sin(la) * np.sin(np.radians(slat)) + np.cos(la) * np.cos(np.radians(slat)) * np.cos(lo - np.radians(slon)),
@@ -202,14 +203,14 @@ def earth_names(lat: np.ndarray, lon: np.ndarray) -> tuple[np.ndarray, list[str]
     idx = np.empty(lat.shape, np.int32)
     for i in range(lat.size):
         if site_idx[i] >= 0:
-            name = EARTH_SITES[site_idx[i]][0]
+            name = EARTH_SITES[site_idx[i]][0 if lang == "es" else 1]
         else:
             reg = rnames[ri[i] - 1] if ri[i] else None
             cty = cnames[ci[i] - 1] if ci[i] else None
             if reg and cty and reg != cty:
                 name = f"{reg}, {cty}"
             else:
-                name = reg or cty or ("Antártida" if lat[i] < -60 else "")
+                name = reg or cty or ((("Antártida" if lang == "es" else "Antarctica")) if lat[i] < -60 else "")
         idx[i] = table.setdefault(name, len(table))
     names = [""] * len(table)
     for k, v in table.items():
@@ -266,9 +267,10 @@ def build(body: str) -> dict:
     )
     if body == "earth":
         log("  nombrando celdas (Natural Earth + sitios curados)")
-        name_idx, names = earth_names(lat[rows], lon[rows])
-        payload["name_idx"] = name_idx
-        payload["names"] = np.array(names)
+        for lang, suffix in (("es", ""), ("en", "_en")):
+            name_idx, names = earth_names(lat[rows], lon[rows], lang)
+            payload[f"name_idx{suffix}"] = name_idx
+            payload[f"names{suffix}"] = np.array(names)
 
     INDEX.mkdir(parents=True, exist_ok=True)
     out = INDEX / f"{body}_grid.npz"
@@ -282,7 +284,7 @@ def build(body: str) -> dict:
 
 def query_points(built: dict) -> None:
     out: dict[str, list] = {}
-    for body, pts in [*FAMOUS.items(), ("earth", [(n, la, lo) for n, la, lo in EARTH_SITES])]:
+    for body, pts in [*FAMOUS.items(), ("earth", [(n, la, lo) for n, _, la, lo in EARTH_SITES])]:
         if body not in built:
             continue
         g, c2r, vals = built[body]["grid"], built[body]["cell_to_row"], built[body]["vals"]
@@ -292,7 +294,10 @@ def query_points(built: dict) -> None:
             desc = None if row < 0 else {k: round(float(vals[row, i]), 2) for i, k in enumerate(DIMS)}
             if desc:
                 desc["illum"] = round(float(illumination(body, la)), 2)  # el punto exacto, no el centro de la celda
-            lst.append({"name": name, "lat": la, "lon": lo, "descriptors": desc})
+            item = {"name": name, "lat": la, "lon": lo, "descriptors": desc}
+            if body == "earth":
+                item["name_en"] = next(en for es, en, *_ in EARTH_SITES if es == name)
+            lst.append(item)
         out[body] = lst
     path = INDEX / "query_points.json"
     prev = json.loads(path.read_text()) if path.exists() else {}

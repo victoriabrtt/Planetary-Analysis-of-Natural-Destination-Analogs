@@ -1,8 +1,11 @@
 import type { DimKey } from '../engine/dimensions'
+import { useT } from '../i18n'
 import { useActiveProfile, useStore } from '../store/useStore'
 import Segmented from './Segmented'
 
+/** El perfil de misión es parte de la consulta: va junto a los controles de origen, arriba. */
 export default function ProfileSelector() {
+  const t = useT()
   const setProfile = useStore((s) => s.setProfile)
   const profiles = useStore((s) => s.profiles)
   const dims = useStore((s) => s.dims)
@@ -14,27 +17,17 @@ export default function ProfileSelector() {
   })
 
   return (
-    <div className="flex flex-col gap-3">
-      <div>
-        <h2 id="resultados" tabIndex={-1} className="display scroll-mt-6 text-[24px]">
-          Perfil de misión
-        </h2>
-        <p className="mt-1 text-[16px] text-(--muted)">
-          {p.blurb}
-          {boosted.length > 0 && (
-            <span className="tnum text-[14px]">
-              {' · '}
-              {boosted.map(({ d, w }) => `${d.short.toLowerCase()} ×${w}`).join(', ')}
-            </span>
-          )}
-        </p>
-      </div>
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+      <span id="profile-label" className="text-[15px] font-medium">
+        {t('profile.title')}
+      </span>
       <Segmented
         id="profile"
-        ariaLabel="Perfil de misión"
+        ariaLabel={t('profile.title')}
         value={profileId}
         onChange={setProfile}
-        className={`grid w-full ${profiles.length === 4 ? 'grid-cols-[repeat(4,minmax(0,1fr))]' : 'grid-cols-[repeat(3,minmax(0,1fr))]'}`}
+        size="sm"
+        className={`grid w-full sm:inline-flex sm:w-auto ${profiles.length === 4 ? 'grid-cols-[repeat(4,minmax(0,1fr))]' : 'grid-cols-[repeat(3,minmax(0,1fr))]'}`}
         options={profiles.map((x) => ({
           value: x.id,
           title: x.blurb,
@@ -46,6 +39,10 @@ export default function ProfileSelector() {
           ),
         }))}
       />
+      <span className="text-[14px] text-(--muted)">
+        {p.blurb}
+        {boosted.length > 0 && <span className="num">{' · '}{boosted.map(({ d, w }) => `${d.short.toLowerCase()} ×${w}`).join(', ')}</span>}
+      </span>
     </div>
   )
 }

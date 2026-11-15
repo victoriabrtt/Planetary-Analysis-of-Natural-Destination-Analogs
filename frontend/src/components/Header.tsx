@@ -1,6 +1,7 @@
 import { useStore, type Mode, type OffBody } from '../store/useStore'
 import { MoonIcon, SunIcon } from './Icons'
 import Segmented from './Segmented'
+import { LANGS, useT, type Lang } from '../i18n'
 
 /** Marca: dos cuerpos unidos por una órbita, el origen y su análogo. */
 function Mark() {
@@ -20,12 +21,15 @@ export default function Header() {
   const setMode = useStore((s) => s.setMode)
   const setBody = useStore((s) => s.setBody)
   const toggleTheme = useStore((s) => s.toggleTheme)
-  const other = body === 'moon' ? 'Luna' : 'Marte'
+  const lang = useStore((s) => s.lang)
+  const setLang = useStore((s) => s.setLang)
+  const t = useT()
+  const otherThe = t(body === 'moon' ? 'the.moon' : 'the.mars')
 
   const themeButton = (
     <button
       onClick={toggleTheme}
-      aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      aria-label={theme === 'dark' ? t('header.toLight') : t('header.toDark')}
       className="press grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-(--line) text-(--muted) transition-colors hover:border-(--line-strong) hover:text-(--fg)"
     >
       {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
@@ -47,24 +51,32 @@ export default function Header() {
         <Segmented<Mode>
           id="mode"
           size="sm"
-          ariaLabel="Dirección de la búsqueda"
+          ariaLabel={t('header.direction')}
           value={mode}
           onChange={setMode}
           options={[
-            { value: 'forward', label: 'Hacia la Tierra', title: `Elegís un punto de ${other === 'Luna' ? 'la Luna' : 'Marte'} y se busca en la Tierra` },
-            { value: 'inverse', label: 'Desde la Tierra', title: `Elegís un punto de la Tierra y se busca en ${other === 'Luna' ? 'la Luna' : 'Marte'}` },
+            { value: 'forward', label: t('header.toEarth'), title: t('header.toEarthTitle', { body: otherThe }) },
+            { value: 'inverse', label: t('header.fromEarth'), title: t('header.fromEarthTitle', { body: otherThe }) },
           ]}
         />
         <Segmented<OffBody>
           id="body"
           size="sm"
-          ariaLabel="Cuerpo celeste"
+          ariaLabel={t('header.bodyGroup')}
           value={body}
           onChange={setBody}
           options={[
-            { value: 'moon', label: 'Luna' },
-            { value: 'mars', label: 'Marte' },
+            { value: 'moon', label: t('body.moon') },
+            { value: 'mars', label: t('body.mars') },
           ]}
+        />
+        <Segmented<Lang>
+          id="lang"
+          size="sm"
+          ariaLabel={t('header.language')}
+          value={lang}
+          onChange={setLang}
+          options={LANGS.map((l) => ({ value: l.value, label: <span lang={l.value}>{l.label}</span>, title: l.name }))}
         />
         <div className="hidden md:block">{themeButton}</div>
       </div>

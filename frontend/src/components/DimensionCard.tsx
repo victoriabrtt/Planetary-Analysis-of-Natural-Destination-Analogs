@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
 import type { DimMatch } from '../api/types'
-import { VERDICTS, verdictOf, type Dimension } from '../engine/dimensions'
+import { verdictOf, type Dimension } from '../engine/dimensions'
 import { fmtCoord, fmtVal, pct } from '../lib/format'
 import { valueSpring } from '../lib/motion'
 import { useStore } from '../store/useStore'
 import VerdictBadge from './VerdictBadge'
+import { useT } from '../i18n'
 
 interface Props {
   dim: Dimension
@@ -26,7 +27,8 @@ function Scale({ dim, src, match }: { dim: Dimension; src: number; match: number
   // Tope físico: la iluminación no pasa de 90° ni el índice de cuevas de 1.
   const cap = dim.key === 'illum' ? 90 : dim.key === 'caves' ? 1 : Infinity
   const hi = Math.max(Math.min(Math.ceil(raw / step) * step, cap), src, match)
-  const x = (v: number) => `${((Math.min(Math.max(v, lo), hi) - lo) / (hi - lo)) * 100}%`
+  // 3 % de margen a cada lado: un valor en el tope (88° de 90°) no queda cortado contra el borde.
+  const x = (v: number) => `${3 + ((Math.min(Math.max(v, lo), hi) - lo) / (hi - lo)) * 94}%`
   const bandL = Math.max(src - dim.tol, lo)
   const bandR = Math.min(src + dim.tol, hi)
   return (
@@ -65,9 +67,9 @@ function Scale({ dim, src, match }: { dim: Dimension; src: number; match: number
  *  el mejor lugar para esta medida sola queda como dato secundario. No es un link: al pasar el
  *  mouse resalta sus marcadores en el globo. */
 export default function DimensionCard({ dim, best, winner, sourceName, winnerName, weight }: Props) {
+  const t = useT()
   const setHoveredDim = useStore((s) => s.setHoveredDim)
   const hoveredDim = useStore((s) => s.hoveredDim)
-  const v = VERDICTS[verdictOf(winner.score)]
   const tol = best.tol ?? dim.tol
   const otherBest = best.site.name !== winnerName
 
@@ -76,7 +78,7 @@ export default function DimensionCard({ dim, best, winner, sourceName, winnerNam
       onMouseEnter={() => setHoveredDim(dim.key)}
       onMouseLeave={() => setHoveredDim(null)}
       onClick={() => setHoveredDim(hoveredDim === dim.key ? null : dim.key)}
-      aria-label={`${dim.name}: ${v.label}. ${sourceName} ${fmtVal(dim, best.src)}, ${winnerName} ${fmtVal(dim, winner.match)}.`}
+      aria-label={`${dim.name}: ${t(`verdict.${verdictOf(winner.score)}`)}. ${sourceName} ${fmtVal(dim, best.src)}, ${winnerName} ${fmtVal(dim, winner.match)}.`}
       className="card flex min-w-0 flex-col p-6 hover:border-(--line-strong) hover:bg-(--card-hover)"
     >
       <div className="flex items-start justify-between gap-3">
@@ -103,26 +105,26 @@ export default function DimensionCard({ dim, best, winner, sourceName, winnerNam
           <span className="[overflow-wrap:anywhere]">{winnerName}</span>
         </dt>
         <dd className="tnum text-right">{fmtVal(dim, winner.match)}</dd>
-        <dt className="text-(--muted)">Diferencia</dt>
+        <dt className="text-(--muted)">{t('card.diff')}</dt>
         <dd className="tnum text-right">
-          {fmtVal(dim, winner.diff)} <span className="text-(--muted)">de ±{fmtVal(dim, tol)}</span>
+          {fmtVal(dim, winner.diff)} <span className="text-(--muted)">{t('card.of')} ±{fmtVal(dim, tol)}</span>
         </dd>
       </dl>
 
       <p className="mt-5 border-t border-(--line) pt-3 text-[14px] leading-snug text-(--muted)">
         {otherBest ? (
           <>
-            Mejor solo en {dim.name.toLowerCase()}:{' '}
+            {t('card.bestOnly', { dim: dim.name.toLowerCase() })}{' '}
             <span className="text-(--fg)" title={fmtCoord(best.site.lat, best.site.lon)}>
               {best.site.name}
             </span>{' '}
             <span className="tnum">({fmtVal(dim, best.match)})</span>
           </>
         ) : (
-          <>Ningún lugar se acerca más en esta medida.</>
+          <>{t('card.noneCloser')}</>
         )}
-        {weight !== 1 && <span className="tnum"> · peso ×{weight}</span>}
-        <span className="sr-only"> Cercanía {pct(winner.score)}%.</span>
+        {weight !== 1 && <span className="num"> · {t('card.weight', { w: weight })}</span>}
+        <span className="sr-only"> {t('card.closeness', { p: `${pct(winner.score)}%` })}</span>
       </p>
     </article>
   )

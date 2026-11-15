@@ -136,3 +136,16 @@ def test_qualifying_share_discriminates(client):
     # cada fila del ranking trae sus medidas
     r = post(client).json()["ranking"]
     assert all(set(x["perDim"]) == set(DIMENSIONS) for x in r)
+
+
+@need("moon", "earth")
+def test_language(client):
+    """lang es opcional: sin él responde en español; con "en", textos y nombres en inglés."""
+    es = post(client).json()
+    en = post(client, lang="en").json()
+    assert es["overall"]["site"]["name"] == "Montañas Transantárticas, Antártida"
+    assert en["overall"]["site"]["name"] == "Transantarctic Mountains, Antarctica"
+    assert en["caveats"][0].startswith("Earth does not reproduce")
+    assert [d["name"] for d in client.get("/api/meta?lang=en").json()["dims"]] == ["Slope", "Roughness", "Relief", "Illumination"]
+    bad = post(client, source_body="earth", lat=-30.0, lon=-140.0, target_body="moon", lang="en")
+    assert "falls in the ocean" in bad.json()["detail"]["message"]

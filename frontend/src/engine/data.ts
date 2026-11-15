@@ -51,6 +51,12 @@ export const BODY_LABEL: Record<Body, string> = { moon: 'Luna', mars: 'Marte', e
 /** Con artículo: "la Luna", "Marte", "la Tierra". */
 export const BODY_THE: Record<Body, string> = { moon: 'la Luna', mars: 'Marte', earth: 'la Tierra' }
 
+export const CAVEATS_EN: string[] = [
+  'Earth does not reproduce the reduced gravity of the Moon (1/6 g) or of Mars (3/8 g).',
+  'It does not reproduce the lunar vacuum or the thin Martian atmosphere (~0.6% of Earth’s).',
+  'It does not reproduce a radiation environment without a protective magnetosphere.',
+]
+
 export const CAVEATS: string[] = [
   'La Tierra no reproduce la gravedad reducida de la Luna (1/6 g) ni la de Marte (3/8 g).',
   'No reproduce el vacío lunar ni la atmósfera delgada marciana (~0,6% de la terrestre).',

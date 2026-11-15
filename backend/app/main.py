@@ -36,6 +36,8 @@ class MatchRequest(BaseModel):
     target_body: Body = "earth"
     top_n: int = Field(default=5, ge=1, le=20)
     weights: dict[str, float] = Field(default_factory=dict)
+    # Opcional (extensión del contrato): idioma de los textos y nombres de la respuesta.
+    lang: Literal["es", "en"] = "es"
 
 
 state: dict = {}
@@ -64,15 +66,15 @@ def health() -> dict:
 
 
 @app.get("/api/meta")
-def meta() -> dict:
-    return engine().meta()
+def meta(lang: Literal["es", "en"] = "es") -> dict:
+    return engine().meta(lang)
 
 
 @app.post("/api/match")
 def match(req: MatchRequest) -> dict:
     lon = ((req.lon + 180) % 360) - 180
     try:
-        return engine().match(req.source_body, req.lat, lon, req.target_body, req.top_n, req.weights)
+        return engine().match(req.source_body, req.lat, lon, req.target_body, req.top_n, req.weights, req.lang)
     except PointError as e:
         raise HTTPException(status_code=422, detail={"message": str(e), "nearest": e.nearest}) from e
 
