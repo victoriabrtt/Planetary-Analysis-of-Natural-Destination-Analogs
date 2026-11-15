@@ -5,7 +5,7 @@ export default function VerdictBadge({ score, size = 'sm' }: { score: number; si
   const v = VERDICTS[verdictOf(score)]
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-md border border-(--line) font-medium ${
+      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-(--line) font-medium ${
         size === 'md' ? 'px-2.5 py-1 text-[14px]' : 'px-2 py-0.5 text-[13px]'
       }`}
     >

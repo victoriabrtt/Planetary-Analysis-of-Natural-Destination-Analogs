@@ -34,6 +34,8 @@ interface Props {
   arcs?: Arc[]
   focus?: { lat: number; lon: number; altitude?: number; key: string }
   highlightDim?: DimKey | null
+  /** Celdas que califican como análogo fuerte: se dibujan como puntos tenues sobre la superficie. */
+  dots?: [number, number][]
   onPick?: (lat: number, lon: number) => void
   ariaLabel: string
 }
@@ -112,7 +114,7 @@ function StillGlobe({ body, label }: { body: Body; label: string }) {
   )
 }
 
-export default function GlobeView({ body, markers, rings = [], arcs = [], focus, highlightDim, onPick, ariaLabel }: Props) {
+export default function GlobeView({ body, markers, rings = [], arcs = [], focus, highlightDim, dots = [], onPick, ariaLabel }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const globeRef = useRef<GlobeMethods | undefined>(undefined)
   const elCache = useRef(new Map<string, HTMLElement>())
@@ -250,6 +252,15 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
           htmlElement={(d: object) => (d as { el: HTMLElement }).el}
           htmlTransitionDuration={reduced ? 0 : 700}
           htmlElementVisibilityModifier={(el, visible) => el.classList.toggle('is-hidden', !visible)}
+          pointsData={dots}
+          pointLat={(d: object) => (d as [number, number])[0]}
+          pointLng={(d: object) => (d as [number, number])[1]}
+          pointColor={() => (light ? 'rgba(10, 60, 140, 0.75)' : 'rgba(156, 199, 255, 0.7)')}
+          pointAltitude={0.004}
+          pointRadius={0.32}
+          pointResolution={4}
+          pointsMerge
+          pointsTransitionDuration={0}
           ringsData={animate ? rings : []}
           ringLat="lat"
           ringLng="lng"
@@ -263,7 +274,7 @@ export default function GlobeView({ body, markers, rings = [], arcs = [], focus,
           ringAltitude={0.004}
           arcsData={arcs}
           arcColor={() => ['rgba(255,255,255,0.15)', '#3987e5', '#9cc7ff']}
-          arcAltitudeAutoScale={0.45}
+          arcAltitudeAutoScale={0.28}
           arcStroke={0.7}
           arcDashLength={animate ? 0.55 : 1}
           arcDashGap={animate ? 0.25 : 0}

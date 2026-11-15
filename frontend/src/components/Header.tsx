@@ -2,14 +2,13 @@ import { useStore, type Mode, type OffBody } from '../store/useStore'
 import { MoonIcon, SunIcon } from './Icons'
 import Segmented from './Segmented'
 
-/** Marca repartida por la skill (data-mark="dots"): tres círculos y un cuadrado, en el acento. */
+/** Marca: dos cuerpos unidos por una órbita, el origen y su análogo. */
 function Mark() {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden className="shrink-0 text-accent">
-      <circle cx="6.5" cy="6.5" r="4.5" fill="currentColor" />
-      <circle cx="17.5" cy="6.5" r="4.5" fill="currentColor" />
-      <circle cx="6.5" cy="17.5" r="4.5" fill="currentColor" />
-      <rect x="13" y="13" width="9" height="9" rx="1.5" fill="currentColor" />
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden className="shrink-0">
+      <path d="M4.5 17.5a9.5 9.5 0 0 1 15-11" fill="none" stroke="currentColor" strokeOpacity=".35" strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="8.5" cy="14.5" r="5.5" className="fill-accent" />
+      <circle cx="18" cy="6.5" r="3" fill="currentColor" />
     </svg>
   )
 }
@@ -52,8 +51,8 @@ export default function Header() {
           value={mode}
           onChange={setMode}
           options={[
-            { value: 'forward', label: `${other} → Tierra` },
-            { value: 'inverse', label: `Tierra → ${other}` },
+            { value: 'forward', label: 'Hacia la Tierra', title: `Elegís un punto de ${other === 'Luna' ? 'la Luna' : 'Marte'} y se busca en la Tierra` },
+            { value: 'inverse', label: 'Desde la Tierra', title: `Elegís un punto de la Tierra y se busca en ${other === 'Luna' ? 'la Luna' : 'Marte'}` },
           ]}
         />
         <Segmented<OffBody>

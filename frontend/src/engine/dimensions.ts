@@ -76,7 +76,7 @@ export interface Profile {
 }
 
 export const PROFILES: Profile[] = [
-  { id: 'balanced', name: 'Balanceado', blurb: 'Todas las dimensiones pesan igual', weights: {} },
+  { id: 'balanced', name: 'Balanceado', blurb: 'Todas las medidas pesan igual', weights: {} },
   { id: 'rover', name: 'Rover', blurb: 'Movilidad: pendiente, rugosidad y cráteres', weights: { terrain: 3, roughness: 2.5, craters: 1.5 } },
   { id: 'thermal', name: 'Térmico', blurb: 'Iluminación y composición del suelo', weights: { illum: 3, composition: 1.5 } },
   { id: 'habitat', name: 'Hábitat / cuevas', blurb: 'Refugio natural en tubos de lava', weights: { caves: 3.5, roughness: 1.5 } },
@@ -102,8 +102,10 @@ export const VERDICTS: Record<VerdictKey, { label: string; color: string }> = {
 }
 
 export function verdictOf(score: number): VerdictKey {
-  if (score >= 0.75) return 'strong'
-  if (score >= 0.5) return 'moderate'
-  if (score >= 0.25) return 'weak'
+  // Sobre el porcentaje que se muestra: si dice 75%, el veredicto es Fuerte (no "Moderado" por 0,7499).
+  const p = Math.round(score * 100)
+  if (p >= 75) return 'strong'
+  if (p >= 50) return 'moderate'
+  if (p >= 25) return 'weak'
   return 'broken'
 }

@@ -20,12 +20,18 @@ interface Props {
 /** Escala de instrumento: el valor de origen, su banda de tolerancia y el valor del ganador. */
 function Scale({ dim, src, match }: { dim: Dimension; src: number; match: number }) {
   const lo = Math.min(dim.range[0], src - dim.tol, match)
-  const hi = Math.max(dim.range[1], src + dim.tol, match) * 1.04
+  // Extremo superior redondeado a un valor limpio (40°, 600 m, 3.000 m), con un poco de aire.
+  const raw = Math.max(dim.range[1], src + dim.tol, match) * 1.04
+  const step = 10 ** Math.floor(Math.log10(raw)) / 5
+  // Tope físico: la iluminación no pasa de 90° ni el índice de cuevas de 1.
+  const cap = dim.key === 'illum' ? 90 : dim.key === 'caves' ? 1 : Infinity
+  const hi = Math.max(Math.min(Math.ceil(raw / step) * step, cap), src, match)
   const x = (v: number) => `${((Math.min(Math.max(v, lo), hi) - lo) / (hi - lo)) * 100}%`
   const bandL = Math.max(src - dim.tol, lo)
   const bandR = Math.min(src + dim.tol, hi)
   return (
-    <div className="relative mt-5 h-7" aria-hidden>
+    <div className="mt-5" aria-hidden>
+    <div className="relative h-7">
       <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-(--line-strong)" />
       <motion.div
         className="absolute top-1/2 h-3 -translate-y-1/2 rounded-sm bg-(--track) ring-1 ring-(--line-strong) ring-inset"
@@ -34,18 +40,23 @@ function Scale({ dim, src, match }: { dim: Dimension; src: number; match: number
         transition={valueSpring}
       />
       <motion.div
-        className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-(--fg) bg-(--card)"
+        className="absolute top-1/2 h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-(--fg)"
         initial={false}
         animate={{ left: x(src) }}
         transition={valueSpring}
       />
       <motion.div
-        className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-(--card)"
         style={{ background: dim.color }}
         initial={false}
         animate={{ left: x(match) }}
         transition={valueSpring}
       />
+    </div>
+    <div className="tnum flex justify-between text-[13px] text-(--muted)">
+      <span>{fmtVal(dim, Math.max(lo, 0))}</span>
+      <span>{fmtVal(dim, hi)}</span>
+    </div>
     </div>
   )
 }
@@ -55,6 +66,7 @@ function Scale({ dim, src, match }: { dim: Dimension; src: number; match: number
  *  mouse resalta sus marcadores en el globo. */
 export default function DimensionCard({ dim, best, winner, sourceName, winnerName, weight }: Props) {
   const setHoveredDim = useStore((s) => s.setHoveredDim)
+  const hoveredDim = useStore((s) => s.hoveredDim)
   const v = VERDICTS[verdictOf(winner.score)]
   const tol = best.tol ?? dim.tol
   const otherBest = best.site.name !== winnerName
@@ -63,6 +75,7 @@ export default function DimensionCard({ dim, best, winner, sourceName, winnerNam
     <article
       onMouseEnter={() => setHoveredDim(dim.key)}
       onMouseLeave={() => setHoveredDim(null)}
+      onClick={() => setHoveredDim(hoveredDim === dim.key ? null : dim.key)}
       aria-label={`${dim.name}: ${v.label}. ${sourceName} ${fmtVal(dim, best.src)}, ${winnerName} ${fmtVal(dim, winner.match)}.`}
       className="card flex min-w-0 flex-col p-6 hover:border-(--line-strong) hover:bg-(--card-hover)"
     >
@@ -80,14 +93,14 @@ export default function DimensionCard({ dim, best, winner, sourceName, winnerNam
       <Scale dim={{ ...dim, tol }} src={best.src} match={winner.match} />
 
       <dl className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1.5 text-[15px]">
-        <dt className="flex min-w-0 items-center gap-2 text-(--muted)">
-          <span className="h-2.5 w-2.5 shrink-0 rounded-full border-2 border-(--fg)" aria-hidden />
-          <span className="truncate">{sourceName}</span>
+        <dt className="flex min-w-0 items-start gap-2 text-(--muted)">
+          <span className="mt-[5px] h-2.5 w-2.5 shrink-0 rounded-full border-2 border-(--fg)" aria-hidden />
+          <span className="[overflow-wrap:anywhere]">{sourceName}</span>
         </dt>
         <dd className="tnum text-right">{fmtVal(dim, best.src)}</dd>
-        <dt className="flex min-w-0 items-center gap-2 text-(--muted)">
-          <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: dim.color }} aria-hidden />
-          <span className="truncate">{winnerName}</span>
+        <dt className="flex min-w-0 items-start gap-2 text-(--muted)">
+          <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full" style={{ background: dim.color }} aria-hidden />
+          <span className="[overflow-wrap:anywhere]">{winnerName}</span>
         </dt>
         <dd className="tnum text-right">{fmtVal(dim, winner.match)}</dd>
         <dt className="text-(--muted)">Diferencia</dt>

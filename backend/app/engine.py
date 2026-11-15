@@ -67,7 +67,7 @@ DIMENSIONS: dict[str, dict] = {
 }
 
 PROFILES = [
-    {"id": "balanced", "name": "Balanceado", "blurb": "Todas las dimensiones pesan igual", "weights": {}},
+    {"id": "balanced", "name": "Balanceado", "blurb": "Todas las medidas pesan igual", "weights": {}},
     {"id": "rover", "name": "Rover", "blurb": "Movilidad: pendiente y rugosidad", "weights": {"terrain": 3, "roughness": 2.5}},
     {"id": "thermal", "name": "Térmico", "blurb": "Ángulo de iluminación solar", "weights": {"illum": 3}},
 ]
@@ -76,6 +76,8 @@ GRAVITY = {"moon": "de la Luna (1/6 g)", "mars": "de Marte (3/8 g)"}
 ATMOS = {"moon": "el vacío lunar", "mars": "la atmósfera delgada marciana (~0,6% de la terrestre)"}
 BODY_ES = {"earth": "la Tierra", "moon": "la Luna", "mars": "Marte"}
 
+STRONG = 0.745  # "Fuerte" = 75 % redondeado, el mismo criterio que el front
+QUAL_SAMPLE = 2500  # celdas que califican enviadas para dibujar en el globo (muestra uniforme)
 RANK_POOL = 4000  # candidatos considerados para el ranking diverso
 RANK_SEPARATION_KM = 300.0  # dos resultados del ranking deben estar al menos a esta distancia
 SNAP_MAX_KM = 250.0  # si el punto cae en una celda inválida (océano), se busca la válida más cercana
@@ -180,6 +182,11 @@ class Engine:
             n = str(idx.names[idx.name_idx[row]])
             if n:
                 return n  # las coordenadas van aparte (site.lat/lon); el front las muestra
+        # Luna/Marte sin nombre: referirla al sitio conocido más cercano ("Zona a 1.230 km de Tycho").
+        fam = self.famous.get(body, [])
+        if fam and row >= 0:
+            d, name = min((float(idx.dist_km(f["lat"], f["lon"], [row])[0]), f["name"]) for f in fam)
+            return f"Zona a {f'{d:,.0f}'.replace(',', '.')} km de {name}"
         return fmt_coord(lat, lon)
 
     def source_name(self, body: str, lat: float, lon: float) -> str | None:
@@ -242,12 +249,27 @@ class Engine:
 
         ranking = self._diverse_top(tgt, overall, max(1, top_n))
         win = ranking[0]
-        # Extensión: cómo le va al ganador global en cada dimensión (lo que muestran las cards y
-        # "Dónde se rompe"); perDim sigue siendo el mejor análogo por dimensión, como pide el contrato.
-        winner_dims = {}
-        for j, d in enumerate(dims):
-            _, wm, wd = rounded_pair(d, src[d], float(tgt.vals[win, tgt.dims.index(d)]))
-            winner_dims[d] = {"match": wm, "diff": wd, "score": round(float(C[win, j]), 4)}
+
+        def cand_dims(row: int) -> dict:
+            """Extensión: cómo le va a una celda candidata en cada dimensión (para las cards, "Dónde se
+            rompe" y el ranking). perDim sigue siendo el mejor por dimensión, como pide el contrato."""
+            out = {}
+            for j, d in enumerate(dims):
+                _, m, df = rounded_pair(d, src[d], float(tgt.vals[row, tgt.dims.index(d)]))
+                out[d] = {"match": m, "diff": df, "score": round(float(C[row, j]), 4)}
+            return out
+
+        # Cuánto de la superficie destino califica como análogo "Fuerte" (global ≥ 0,75). El ganador
+        # siempre es el mejor; esto dice si es un análogo raro o si medio continente sirve igual.
+        qual = np.nonzero(overall >= STRONG)[0]
+        step = max(1, int(np.ceil(qual.size / QUAL_SAMPLE)))
+        sample = qual[::step]
+        qualifying = {
+            "count": int(qual.size),
+            "share": round(float(qual.size / overall.size), 5),
+            "sample": [[round(float(tgt.lat[i]), 2), round(float(tgt.lon[i]), 2)] for i in sample],
+        }
+
         return {
             "source": {
                 "body": source_body,
@@ -256,10 +278,15 @@ class Engine:
                 "name": self.source_name(source_body, lat, lon)
                 or self.site_name(source_body, srow, float(src_idx.lat[srow]), float(src_idx.lon[srow])),
             },
-            "overall": {"site": site(win), "score": round(float(overall[win]), 4), "perDim": winner_dims},
+            "overall": {
+                "site": site(win),
+                "score": round(float(overall[win]), 4),
+                "perDim": cand_dims(win),
+                "qualifying": qualifying,
+            },
             "perDim": per_dim,
             "caveats": caveats(source_body, target_body, src_idx.cell_km),
-            "ranking": [{"site": site(r), "score": round(float(overall[r]), 4)} for r in ranking],
+            "ranking": [{"site": site(r), "score": round(float(overall[r]), 4), "perDim": cand_dims(r)} for r in ranking],
         }
 
     @staticmethod

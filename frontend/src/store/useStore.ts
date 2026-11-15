@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { ApiError, USE_MOCK, fetchMeta, matchAnalogs } from '../api/client'
-import type { MatchResponse, SiteRef } from '../api/types'
+import type { CandidateDim, MatchResponse, SiteRef } from '../api/types'
 import { EARTH, FAMOUS, type Body } from '../engine/data'
 import { DIMS, PROFILES, dimFromMeta, fallbackDim, profileWeights, type DimKey, type Dimension, type Profile } from '../engine/dimensions'
 
@@ -24,8 +24,8 @@ interface State {
   /** Punto con datos más cercano cuando el elegido no tiene (ej. océano). */
   errorNearest: { lat: number; lon: number; km: number } | null
   hoveredDim: DimKey | null
-  /** Lugar del ranking que se está mirando en el globo destino (null = el ganador). */
-  inspect: SiteRef | null
+  /** Puesto del ranking que se está mirando (null = el ganador). Cambia el panel, las cards y el globo. */
+  inspectIdx: number | null
   theme: Theme
   /** Catálogo activo: local (mock) o el que define el backend (GET /api/meta). */
   dims: Dimension[]
@@ -39,7 +39,7 @@ interface State {
   setProfile: (id: string) => void
   selectPoint: (lat: number, lon: number) => void
   setHoveredDim: (d: DimKey | null) => void
-  setInspect: (s: SiteRef | null) => void
+  setInspect: (i: number | null) => void
   toggleTheme: () => void
   run: () => Promise<void>
 }
@@ -70,7 +70,7 @@ export const useStore = create<State>((set, get) => ({
   error: null,
   errorNearest: null,
   hoveredDim: null,
-  inspect: null,
+  inspectIdx: null,
   theme: initialTheme,
   dims: DIMS,
   profiles: PROFILES,
@@ -116,7 +116,7 @@ export const useStore = create<State>((set, get) => ({
     void get().run()
   },
   setHoveredDim: (hoveredDim) => set({ hoveredDim }),
-  setInspect: (inspect) => set({ inspect }),
+  setInspect: (i) => set({ inspectIdx: i && i > 0 ? i : null }),
   toggleTheme: () => {
     const theme: Theme = get().theme === 'dark' ? 'light' : 'dark'
     localStorage.setItem('theme', theme)
@@ -129,7 +129,7 @@ export const useStore = create<State>((set, get) => ({
     const id = ++reqId
     controller?.abort()
     controller = new AbortController()
-    set({ loading: true, error: null, errorNearest: null, inspect: null })
+    set({ loading: true, error: null, errorNearest: null, inspectIdx: null })
     try {
       const result = await matchAnalogs(
         {
@@ -169,4 +169,25 @@ export function useActiveProfile(): Profile {
   const profiles = useStore((s) => s.profiles)
   const id = useStore((s) => s.profileId)
   return profiles.find((p) => p.id === id) ?? profiles[0]
+}
+
+export interface Candidate {
+  site: SiteRef
+  score: number
+  /** 1 = el ganador */
+  rank: number
+  perDim: Record<DimKey, CandidateDim>
+}
+
+/** El lugar que se está mirando: el ganador, o el puesto del ranking que se tocó. */
+export function useCandidate(): Candidate | null {
+  const result = useStore((s) => s.result)
+  const idx = useStore((s) => s.inspectIdx)
+  if (!result) return null
+  const fallbackDims = Object.fromEntries(
+    Object.entries(result.perDim).map(([k, m]) => [k, { match: m.match, diff: m.diff, score: m.score }]),
+  )
+  const r = idx != null ? result.ranking?.[idx] : undefined
+  if (r) return { site: r.site, score: r.score, rank: idx! + 1, perDim: r.perDim ?? fallbackDims }
+  return { site: result.overall.site, score: result.overall.score, rank: 1, perDim: result.overall.perDim ?? fallbackDims }
 }

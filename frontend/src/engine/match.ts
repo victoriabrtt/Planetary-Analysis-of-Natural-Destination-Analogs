@@ -37,20 +37,25 @@ export function computeMatch(req: MatchRequest): MatchResponse {
     }),
   ) as MatchResponse['perDim']
 
+  const candDims = (s: (typeof scored)[number]) =>
+    Object.fromEntries(
+      DIMS.map((d, i) => {
+        const { match, diff } = pair(i, src.vals[i], s.c.vals[i])
+        return [d.key, { match, diff, score: s.per[i] }]
+      }),
+    )
+  const qual = scored.filter((s) => s.total >= 0.75)
+
   return {
     source: { body: req.source_body, lat: req.lat, lon: req.lon, name: src.name },
     overall: {
       site: ref(scored[0].c),
       score: scored[0].total,
-      perDim: Object.fromEntries(
-        DIMS.map((d, i) => {
-          const { match, diff } = pair(i, src.vals[i], scored[0].c.vals[i])
-          return [d.key, { match, diff, score: scored[0].per[i] }]
-        }),
-      ),
+      perDim: candDims(scored[0]),
+      qualifying: { count: qual.length, share: qual.length / scored.length, sample: qual.map((s) => [s.c.lat, s.c.lon]) },
     },
     perDim,
     caveats: CAVEATS,
-    ranking: scored.slice(0, req.top_n).map((s) => ({ site: ref(s.c), score: s.total })),
+    ranking: scored.slice(0, req.top_n).map((s) => ({ site: ref(s.c), score: s.total, perDim: candDims(s) })),
   }
 }

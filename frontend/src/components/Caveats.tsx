@@ -1,27 +1,28 @@
 import { BODY_THE } from '../engine/data'
 import { VERDICTS, verdictOf } from '../engine/dimensions'
 import { fmtCoord, fmtVal } from '../lib/format'
-import { resultDims, targetBodyOf, useStore } from '../store/useStore'
+import { resultDims, targetBodyOf, useCandidate, useStore } from '../store/useStore'
 
 /** Dónde se rompe la analogía: primero las medidas en las que el lugar ganador NO alcanza
  *  "Fuerte" (con sus valores reales), después lo que ningún lugar puede reproducir. */
-export default function Caveats() {
+export default function Caveats({ compact = false }: { compact?: boolean }) {
   const result = useStore((s) => s.result)
   const tgt = useStore((s) => targetBodyOf(s.mode, s.body))
   const dims = useStore((s) => s.dims)
-  if (!result) return null
+  const cand = useCandidate()
+  if (!result || !cand) return null
 
-  const winner = result.overall.site
+  const winner = cand.site
   const src = result.source.name ?? fmtCoord(result.source.lat, result.source.lon)
   const rows = resultDims(dims, result).map((d) => {
     const best = result.perDim[d.key]
-    const w = result.overall.perDim?.[d.key] ?? { match: best.match, diff: best.diff, score: best.score }
+    const w = cand.perDim[d.key] ?? { match: best.match, diff: best.diff, score: best.score }
     return { d, best, w, verdict: verdictOf(w.score) }
   })
   const weak = rows.filter((r) => r.verdict !== 'strong').sort((a, b) => a.w.score - b.w.score)
 
   return (
-    <section className="card p-7 sm:p-8" aria-labelledby="caveats-title">
+    <section className={compact ? '' : 'card p-7 sm:p-8'} aria-labelledby="caveats-title">
       <h2 id="caveats-title" className="display text-[24px]">
         Dónde se rompe la analogía
       </h2>
@@ -40,7 +41,7 @@ export default function Caveats() {
         )}
       </p>
 
-      <ul className="mt-5 grid gap-x-10 border-t border-(--line) md:grid-cols-2">
+      <ul className={`mt-5 grid gap-x-10 border-t border-(--line) ${compact ? '' : 'md:grid-cols-2'}`}>
         {weak.map(({ d, best, w, verdict }) => (
           <li key={d.key} className="flex gap-3 border-b border-(--line) py-4 text-[16px] leading-relaxed">
             <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full" style={{ background: VERDICTS[verdict].color }} aria-hidden />

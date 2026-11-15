@@ -47,7 +47,7 @@ def test_contract_shape(client):
     assert set(j) >= {"source", "overall", "perDim", "caveats"}
     assert j["source"] == {**j["source"], "body": "moon", "lat": -89.9, "lon": 0.0}
     # Contrato: site + score. Extensión opcional: perDim del ganador global.
-    assert {"site", "score"} <= set(j["overall"]) <= {"site", "score", "perDim"}
+    assert {"site", "score"} <= set(j["overall"]) <= {"site", "score", "perDim", "qualifying"}
     assert set(j["overall"]["site"]) == {"name", "lat", "lon"}
     for k, w in j["overall"]["perDim"].items():
         dec = DIMENSIONS[k]["decimals"]
@@ -123,3 +123,16 @@ def test_mars_pole_illumination_holds(client):
     """Marte (25,2°) y la Tierra (23,4°) tienen inclinación parecida: la analogía de iluminación aguanta."""
     j = post(client, source_body="mars", lat=-80.0, lon=0.0).json()
     assert j["perDim"]["illum"]["score"] > 0.9
+
+
+@need("moon", "earth")
+def test_qualifying_share_discriminates(client):
+    """Un mar lunar liso tiene análogos en buena parte de la Tierra; un cráter como Tycho, en muy poca."""
+    mare = post(client, lat=0.67, lon=23.47).json()["overall"]["qualifying"]
+    tycho = post(client, lat=-43.3, lon=-11.4).json()["overall"]["qualifying"]
+    assert mare["share"] > 10 * tycho["share"]
+    assert 0 < len(mare["sample"]) <= 2500
+    assert all(-90 <= la <= 90 and -180 <= lo <= 180 for la, lo in mare["sample"])
+    # cada fila del ranking trae sus medidas
+    r = post(client).json()["ranking"]
+    assert all(set(x["perDim"]) == set(DIMENSIONS) for x in r)

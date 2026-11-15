@@ -261,7 +261,10 @@ li {
   height: 8px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.18);
+  /* borde oscuro: el punto se lee sobre la Luna clara y sobre el fondo blanco del modo claro */
+  box-shadow:
+    0 0 0 1.5px rgb(10 11 13 / 0.6),
+    0 0 0 4px rgb(255 255 255 / 0.2);
   transition: transform 200ms ease;
 }
 .gm-famous .gm-label {

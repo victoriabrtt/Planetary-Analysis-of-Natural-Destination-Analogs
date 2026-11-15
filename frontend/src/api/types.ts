@@ -36,12 +36,21 @@ export interface MatchResponse {
     site: SiteRef
     score: number
     /** Opcional (extensión): cómo le va al ganador global en cada dimensión. */
-    perDim?: Record<DimKey, { match: number; diff: number; score: number }>
+    perDim?: Record<DimKey, CandidateDim>
+    /** Opcional (extensión): cuánto del cuerpo destino califica como "Fuerte" (global ≥ 0,75). */
+    qualifying?: { count: number; share: number; sample: [number, number][] }
   }
   perDim: Record<DimKey, DimMatch>
   caveats: string[]
   /** Opcional (extensión): top_n candidatos por cercanía global. La UI funciona sin esto. */
-  ranking?: { site: SiteRef; score: number }[]
+  ranking?: { site: SiteRef; score: number; perDim?: Record<DimKey, CandidateDim> }[]
+}
+
+/** Cómo le va a un lugar candidato en una dimensión. */
+export interface CandidateDim {
+  match: number
+  diff: number
+  score: number
 }
 
 /** GET /api/meta (solo backend real). */
