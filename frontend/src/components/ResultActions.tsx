@@ -25,7 +25,7 @@ export default function ResultActions() {
     const ds = resultDims(dims, result)
     const src = result.source.name ?? fmtCoord(result.source.lat, result.source.lon)
     const q = (v: string) => `"${v.replace(/"/g, '""')}"`
-    const head = ['origen', 'origen_cuerpo', 'origen_lat', 'origen_lon', 'puesto', 'lugar', 'lat', 'lon', 'cercania_pct', ...ds.flatMap((d) => [`${d.key}_valor`, `${d.key}_dif`])]
+    const head = [...t('csv.head').split(','), ...ds.flatMap((d) => [`${d.key}_${t('csv.value')}`, `${d.key}_${t('csv.diff')}`])]
     const rows = result.ranking!.map((r, i) => [
       q(src),
       result.source.body,
@@ -40,7 +40,7 @@ export default function ResultActions() {
     ])
     const csv = [head.join(','), ...rows.map((r) => r.join(','))].join('\n')
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-    const a = Object.assign(document.createElement('a'), { href: url, download: `analogos-${src.replace(/\W+/g, '-').toLowerCase()}.csv` })
+    const a = Object.assign(document.createElement('a'), { href: url, download: `${t('csv.file')}-${src.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\W+/g, '-').toLowerCase()}.csv` })
     a.click()
     URL.revokeObjectURL(url)
   }

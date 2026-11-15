@@ -22,7 +22,7 @@ export const DIMS: Dimension[] = [
   { key: 'roughness', name: 'Rugosidad', short: 'Rugosidad', unit: 'm', tol: 120, range: [20, 600], decimals: 0, color: '#94a3b8', hint: 'Cuánto sube y baja el terreno alrededor de su inclinación' },
   { key: 'composition', name: 'Hierro (FeO)', short: 'Hierro (FeO)', unit: '% FeO', tol: 6, range: [4, 18], decimals: 1, color: '#f472b6', hint: 'Óxido de hierro en superficie' },
   { key: 'craters', name: 'Cráteres', short: 'Cráteres', unit: '/Mkm²', tol: 40, range: [2, 160], decimals: 0, color: '#fde047', hint: 'Cráteres > 1 km por millón de km²' },
-  { key: 'illum', name: 'Iluminación', short: 'Iluminación', unit: '°', tol: 18, range: [5, 88], decimals: 0, color: '#fdba74', hint: 'Qué tan rasante pega el sol en el mejor momento del año' },
+  { key: 'illum', name: 'Iluminación', short: 'Iluminación', unit: '°', tol: 18, range: [5, 88], decimals: 0, color: '#fef08a', hint: 'Qué tan rasante pega el sol en el mejor momento del año' },
   { key: 'caves', name: 'Cuevas', short: 'Cuevas', unit: 'idx', tol: 0.3, range: [0, 1], decimals: 2, color: '#2dd4bf', hint: 'Probabilidad de tubos de lava y cavidades (0 a 1)' },
 ]
 
@@ -32,6 +32,7 @@ export const DIM_BY_KEY: Record<DimKey, Dimension> = Object.fromEntries(DIMS.map
 const DIM_COLORS: Record<string, string> = {
   ...Object.fromEntries(DIMS.map((d) => [d.key, d.color])),
   relief: '#67e8f9',
+  illum: '#fef08a',
 }
 const SPARE_COLORS = ['#93c5fd', '#f9a8d4', '#fcd34d', '#fca5a5', '#99f6e4']
 

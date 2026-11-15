@@ -27,7 +27,7 @@ export default function Method() {
         </p>
         <p>{t('method.p3')}</p>
         <p>{t('method.p4')}</p>
-        <p className="tnum text-[13px]">cercanía = exp(−(|a − b| / tol)²)</p>
+        <p className="tnum text-[13px]">{t('method.formula')}</p>
       </div>
     </details>
   )

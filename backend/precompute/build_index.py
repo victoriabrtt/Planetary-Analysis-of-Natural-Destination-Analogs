@@ -106,12 +106,32 @@ def earth_valid_mask(shape, transform) -> np.ndarray:
     return valid
 
 
+# Errores de traducción de Natural Earth (NAME_ES), corregidos a mano.
+# Se aplican sobre el valor original: "GUIANA HIGHLANDS" (Venezuela) viene traducido en mayúsculas como
+# "TIERRAS ALTAS DE GUINEA", que es otra región (África Occidental, bien traducida en minúsculas).
+NAME_FIXES = {
+    "TIERRAS ALTAS DE GUINEA": "Macizo de las Guayanas",
+    "desiero de dinosaurios": "Desierto de los Dinosaurios",
+}
+
+
+def _clean(v: str) -> str:
+    """Normaliza mayúsculas: "SAHEL" → "Sahel", "península de Kamchatka" → "Península de Kamchatka",
+    "Tierras Altas De Khomas" → "Tierras Altas de Khomas"."""
+    v = NAME_FIXES.get(v, v)
+    if v.isupper():
+        v = v.title()
+    v = v[:1].upper() + v[1:]
+    for w in ("De", "Del"):
+        v = v.replace(f" {w} ", f" {w.lower()} ")
+    return v
+
+
 def _prop(p: dict, *keys: str) -> str | None:
     for k in keys:
         v = p.get(k)
         if isinstance(v, str) and v.strip():
-            v = v.strip()
-            return v.title() if v.isupper() else v  # "SAHEL" → "Sahel"
+            return _clean(v.strip())
     return None
 
 

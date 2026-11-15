@@ -64,6 +64,8 @@ const es = {
   'target.rarity.rare': 'raro: {n} celdas, {share} de {body}',
   'target.rarity.rareFew': 'raro: solo {n} celdas de {body}',
   'target.rarity.common': 'común: {share} de {body}',
+  'target.commonTitle': 'Terreno común en {body}',
+  'target.example': 'por ejemplo: {place}',
   'target.measures': 'Cómo se compara en cada medida',
   'target.diff': 'dif.',
   'target.legend': 'Leyenda del globo',
@@ -80,6 +82,9 @@ const es = {
   'reading.some': '{ok} de las {n} medidas de {src}',
   'reading.withinTol': 'dentro de su tolerancia',
   'reading.awayIn': '; se aleja en',
+  'reading.breaksIn': '; se rompe en',
+  'reading.commonLead': 'Es un terreno común: el {share} de {body} reproduce',
+  'reading.forExample': 'Por ejemplo,',
 
   'profile.title': 'Perfil de misión',
 
@@ -91,6 +96,7 @@ const es = {
   'ranking.title': 'Otros lugares parecidos',
   'ranking.hint': 'Tocá uno para compararlo en el panel y en el globo.',
   'ranking.near': 'a {km} km del n.º {n}',
+  'ranking.breaks': 'se rompe en {dims}',
 
   'dims.title': 'Medida por medida',
   'dims.legend': 'El anillo es {src}, el punto de color es {tgt} y la franja gris es la tolerancia de cada medida.',
@@ -115,6 +121,11 @@ const es = {
   'method.p2': 'En cada medida, la cercanía es 100 % si los valores son iguales y baja a medida que la diferencia se acerca a su tolerancia:',
   'method.p3': 'La cercanía global promedia las medidas con los pesos del perfil. Veredicto: Fuerte desde 75 %, Moderado desde 50 %, Débil desde 25 %; debajo, se rompe. Si alguna medida se rompe, el veredicto lo aclara.',
   'method.p4': 'Además se cuenta cuánta superficie califica como análogo fuerte: así se distingue un análogo raro de un terreno común.',
+  'method.formula': 'cercanía = exp(−(|a − b| / tolerancia)²)',
+  'csv.file': 'analogos',
+  'csv.head': 'origen,origen_cuerpo,origen_lat,origen_lon,puesto,lugar,lat,lon,cercania_pct',
+  'csv.value': 'valor',
+  'csv.diff': 'dif',
 
   'footer.mock': 'Motor local de demostración',
   'footer.data': 'Datos: LOLA (Luna), MOLA (Marte), ETOPO 2022 (Tierra)',
@@ -184,6 +195,8 @@ const en: Record<Key, string> = {
   'target.rarity.rare': 'rare: {n} cells, {share} of {body}',
   'target.rarity.rareFew': 'rare: only {n} cells on {body}',
   'target.rarity.common': 'common: {share} of {body}',
+  'target.commonTitle': 'Common terrain on {body}',
+  'target.example': 'for example: {place}',
   'target.measures': 'How it compares on each measure',
   'target.diff': 'diff.',
   'target.legend': 'Globe legend',
@@ -200,6 +213,9 @@ const en: Record<Key, string> = {
   'reading.some': '{ok} of the {n} measures of {src}',
   'reading.withinTol': 'within tolerance',
   'reading.awayIn': '; it drifts on',
+  'reading.breaksIn': '; it breaks on',
+  'reading.commonLead': 'Common terrain: {share} of {body} reproduces',
+  'reading.forExample': 'For example,',
 
   'profile.title': 'Mission profile',
 
@@ -211,6 +227,7 @@ const en: Record<Key, string> = {
   'ranking.title': 'Other similar places',
   'ranking.hint': 'Tap one to compare it in the panel and on the globe.',
   'ranking.near': '{km} km from #{n}',
+  'ranking.breaks': 'breaks on {dims}',
 
   'dims.title': 'Measure by measure',
   'dims.legend': 'The ring is {src}, the coloured dot is {tgt} and the grey band is each measure’s tolerance.',
@@ -235,6 +252,11 @@ const en: Record<Key, string> = {
   'method.p2': 'For each measure, closeness is 100% when the values match and drops as the difference approaches its tolerance:',
   'method.p3': 'Overall closeness averages the measures with the profile weights. Verdict: Strong from 75%, Moderate from 50%, Weak from 25%; below that, it breaks. If any measure breaks, the verdict says so.',
   'method.p4': 'It also counts how much surface qualifies as a strong analog, which tells a rare analog from common terrain.',
+  'method.formula': 'closeness = exp(−(|a − b| / tolerance)²)',
+  'csv.file': 'analogs',
+  'csv.head': 'source,source_body,source_lat,source_lon,rank,place,lat,lon,closeness_pct',
+  'csv.value': 'value',
+  'csv.diff': 'diff',
 
   'footer.mock': 'Local demo engine',
   'footer.data': 'Data: LOLA (Moon), MOLA (Mars), ETOPO 2022 (Earth)',

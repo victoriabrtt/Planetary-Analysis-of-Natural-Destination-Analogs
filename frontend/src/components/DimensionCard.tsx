@@ -48,7 +48,7 @@ function Scale({ dim, src, match }: { dim: Dimension; src: number; match: number
         transition={valueSpring}
       />
       <motion.div
-        className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-(--card)"
+        className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-[2px] ring-2 ring-(--card)"
         style={{ background: dim.color }}
         initial={false}
         animate={{ left: x(match) }}
@@ -84,7 +84,7 @@ export default function DimensionCard({ dim, best, winner, sourceName, winnerNam
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="flex items-center gap-2 text-[17px] font-medium">
-            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: dim.color }} aria-hidden />
+            <span className="h-2.5 w-2.5 shrink-0 rounded-[2px]" style={{ background: dim.color }} aria-hidden />
             {dim.name}
           </h3>
           <p className="mt-1 text-[14px] leading-snug text-(--muted)">{dim.hint}</p>
@@ -101,7 +101,7 @@ export default function DimensionCard({ dim, best, winner, sourceName, winnerNam
         </dt>
         <dd className="tnum text-right">{fmtVal(dim, best.src)}</dd>
         <dt className="flex min-w-0 items-start gap-2 text-(--muted)">
-          <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full" style={{ background: dim.color }} aria-hidden />
+          <span className="mt-[7px] h-2 w-2 shrink-0 rounded-[2px]" style={{ background: dim.color }} aria-hidden />
           <span className="[overflow-wrap:anywhere]">{winnerName}</span>
         </dt>
         <dd className="tnum text-right">{fmtVal(dim, winner.match)}</dd>

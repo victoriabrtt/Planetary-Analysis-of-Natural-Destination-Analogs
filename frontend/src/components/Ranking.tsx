@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
-import { VERDICTS, verdictOf } from '../engine/dimensions'
+import { VERDICTS } from '../engine/dimensions'
 import { useT } from '../i18n'
 import { fmtCoord, pctScore } from '../lib/format'
 import { rankLabels } from '../lib/labels'
+import { listJoin, qualify } from '../lib/verdict'
 import { spring } from '../lib/motion'
 import { targetBodyOf, useStore } from '../store/useStore'
 
@@ -10,6 +11,9 @@ import { targetBodyOf, useStore } from '../store/useStore'
 export default function Ranking() {
   const t = useT()
   const ranking = useStore((s) => s.result?.ranking)
+  const result = useStore((s) => s.result)
+  const dims = useStore((s) => s.dims)
+  const lang = useStore((s) => s.lang)
   const tgt = useStore((s) => targetBodyOf(s.mode, s.body))
   const inspectIdx = useStore((s) => s.inspectIdx)
   const setInspect = useStore((s) => s.setInspect)
@@ -34,7 +38,8 @@ export default function Ranking() {
       <p className="mt-1 text-[16px] text-(--muted)">{t('ranking.hint')}</p>
       <ol className="mt-4 border-t border-(--line)">
         {ranking.map((r, i) => {
-          const k = verdictOf(r.score)
+          const q = qualify(r.score, r.perDim ?? {}, dims.filter((d) => result?.perDim[d.key]))
+          const k = q.k
           const active = i === current
           return (
             <motion.li key={`${r.site.name}-${r.site.lat}-${r.site.lon}`} layout transition={spring} className="border-b border-(--line)">
@@ -49,12 +54,18 @@ export default function Ranking() {
                 <span className="min-w-0">
                   <span className={`block text-[16px] leading-snug [overflow-wrap:anywhere] ${active ? 'font-medium' : ''}`}>{labels[i]}</span>
                   <span className="tnum block text-[13px] text-(--muted)">{fmtCoord(r.site.lat, r.site.lon)}</span>
+                  {q.broken.length > 0 && (
+                    <span className="mt-0.5 flex items-center gap-1.5 text-[13px]">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: VERDICTS.broken.color }} aria-hidden />
+                      {t('ranking.breaks', { dims: listJoin(q.broken.map((d) => d.name.toLowerCase()), lang) })}
+                    </span>
+                  )}
                 </span>
                 <span className="text-right">
                   <span className="tnum block text-[15px]">{pctScore(r.score)}%</span>
                   <span className="flex items-center justify-end gap-1.5 whitespace-nowrap text-[13px] text-(--muted)">
                     <span className="h-1.5 w-1.5 rounded-full" style={{ background: VERDICTS[k].color }} aria-hidden />
-                    {t(`verdict.${k}`)}
+                    {q.qualified ? t('target.strongIn', { ok: q.ok, n: q.n }) : t(`verdict.${k}`)}
                   </span>
                 </span>
               </button>

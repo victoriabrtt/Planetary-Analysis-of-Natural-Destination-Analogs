@@ -5,6 +5,7 @@ import { angularDist, knownSites } from '../engine/fingerprint'
 import { useT } from '../i18n'
 import { fmtCoord, fmtNum, fmtShare, fmtVal, pctScore } from '../lib/format'
 import { placeTitle, rankLabels } from '../lib/labels'
+import { listJoin, qualify } from '../lib/verdict'
 import { spring } from '../lib/motion'
 import { useDelayedFlag } from '../lib/useDelayedFlag'
 import { resultDims, sourceBodyOf, targetBodyOf, useCandidate, useStore } from '../store/useStore'
@@ -24,10 +25,10 @@ function PanelShell({ title, reading, aside, children, footer, label }: {
 }) {
   return (
     <section className="card flex flex-col overflow-hidden" aria-label={label}>
-      <div className="relative z-10 flex items-start justify-between gap-4 px-6 pt-5">
+      <div className="relative z-10 flex flex-col gap-3 px-6 pt-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0">
           {/* Un solo h2: lo que se anima es su contenido, así nunca hay dos títulos a la vez. */}
-          <h2 className="display text-[26px] [overflow-wrap:anywhere] [text-wrap:balance]">
+          <h2 className="display text-[26px] hyphens-auto [overflow-wrap:break-word] [text-wrap:balance]">
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
                 key={title}
@@ -189,19 +190,21 @@ export function TargetPanel() {
 
   const o = cand?.site
   const toggleDim = (k: DimKey) => setHoveredDim(hoveredDim === k ? null : k)
+  // Veredicto calificado (el mismo helper que usa el ranking): el promedio no esconde una medida que se rompe.
+  const q = cand ? qualify(cand.score, cand.perDim, dims) : null
+  const broken = q ? q.broken.map((d) => d.name.toLowerCase()) : []
+  // Análogo común (≥ 5 % de la superficie califica): el título no corona un lugar arbitrario.
+  const common = !!cand && cand.rank === 1 && !!qual && qual.share >= 0.05
   const title = o
-    ? cand.rank > 1 && result?.ranking
+    ? common
+      ? t('target.commonTitle', { body: bodyThe })
+      : cand.rank > 1 && result?.ranking
       ? rankLabels(result.ranking, tgt, t)[cand.rank - 1]
       : placeTitle(o.name, t)
     : error
       ? t('target.none')
       : t('target.calculating')
 
-  // Veredicto calificado: el promedio no esconde una medida que se rompe.
-  const verdicts = cand ? dims.map((d) => ({ d, k: verdictOf((cand.perDim[d.key] ?? result!.perDim[d.key]).score) })) : []
-  const okCount = verdicts.filter((v) => v.k === 'strong').length
-  const broken = verdicts.filter((v) => v.k === 'broken').map((v) => v.d.name.toLowerCase())
-  const list = (xs: string[]) => xs.join(', ')
   const rarity = !qual
     ? null
     : qual.count === 0
@@ -219,18 +222,26 @@ export function TargetPanel() {
       <PanelShell
         label={t('target.label', { body: bodyName })}
         title={title}
-        reading={calculating ? t('target.calculating') : o ? `${bodyName} · ${fmtCoord(o.lat, o.lon)}` : bodyName}
+        reading={
+          calculating
+            ? t('target.calculating')
+            : o
+              ? common
+                ? `${t('target.example', { place: placeTitle(o.name, t) })} · ${fmtCoord(o.lat, o.lon)}`
+                : `${bodyName} · ${fmtCoord(o.lat, o.lon)}`
+              : bodyName
+        }
         aside={
           cand && (
-            <div className="flex max-w-[15rem] shrink-0 flex-col items-end gap-1.5 text-right">
+            <div className="flex shrink-0 flex-col items-start gap-1.5 sm:max-w-[15rem] sm:items-end sm:text-right">
               <span className="figure text-[40px] leading-none">
                 <AnimatedNumber value={pctScore(cand.score)} />
                 <span className="text-(--muted)">%</span>
               </span>
-              {broken.length > 0 && verdictOf(cand.score) === 'strong' ? (
+              {q?.qualified ? (
                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-(--line) px-2.5 py-1 text-[14px] font-medium">
                   <span className="h-2 w-2 rounded-full" style={{ background: VERDICTS.strong.color }} aria-hidden />
-                  {t('target.strongIn', { ok: okCount, n: dims.length })}
+                  {t('target.strongIn', { ok: q.ok, n: q.n })}
                 </span>
               ) : (
                 <VerdictBadge score={cand.score} size="md" />
@@ -238,7 +249,7 @@ export function TargetPanel() {
               {broken.length > 0 && (
                 <span className="flex items-center gap-1.5 text-[13px]">
                   <span className="h-1.5 w-1.5 rounded-full" style={{ background: VERDICTS.broken.color }} aria-hidden />
-                  {t('target.breaksIn', { dims: list(broken) })}
+                  {t('target.breaksIn', { dims: listJoin(broken, lang) })}
                 </span>
               )}
               {cand.rank === 1 && rarity && <span className="text-[13px] text-(--muted)">{rarity}</span>}
@@ -274,7 +285,7 @@ export function TargetPanel() {
                         }`}
                       >
                         <span className="flex min-w-0 items-center gap-2">
-                          <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: d.color }} aria-hidden />
+                          <span className="h-2 w-2 shrink-0 rounded-[2px]" style={{ background: d.color }} aria-hidden />
                           <span className="truncate">{d.name}</span>
                         </span>
                         <span className="flex shrink-0 items-center gap-2 text-(--muted)">

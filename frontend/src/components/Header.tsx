@@ -37,17 +37,17 @@ export default function Header() {
   )
 
   return (
-    <header className="-mx-4 flex flex-col gap-3 border-b border-(--line) px-4 pb-4 sm:-mx-6 sm:px-6 md:flex-row md:items-center md:justify-between lg:-mx-8 lg:px-8">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
+    <header className="-mx-4 flex flex-wrap items-center justify-between gap-3 border-b border-(--line) px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="order-1 flex items-center gap-2.5">
           <Mark />
           <span className="text-[20px] font-medium tracking-[-0.03em]">Analog Matcher</span>
           <span className="kicker hidden sm:inline">· NASA Space Apps 2026</span>
-        </div>
-        <div className="md:hidden">{themeButton}</div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      {/* Un solo botón de tema: en pantallas chicas queda en la fila del logo y los controles bajan. */}
+      <div className="order-2 md:order-3">{themeButton}</div>
+
+      <div className="order-3 flex w-full flex-wrap items-center gap-2 md:order-2 md:ml-auto md:w-auto">
         <Segmented<Mode>
           id="mode"
           size="sm"
@@ -78,7 +78,6 @@ export default function Header() {
           onChange={setLang}
           options={LANGS.map((l) => ({ value: l.value, label: <span lang={l.value}>{l.label}</span>, title: l.name }))}
         />
-        <div className="hidden md:block">{themeButton}</div>
       </div>
     </header>
   )
