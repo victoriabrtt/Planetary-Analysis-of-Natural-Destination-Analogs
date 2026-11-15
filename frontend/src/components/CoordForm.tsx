@@ -76,8 +76,8 @@ export default function CoordForm() {
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-wrap items-start gap-2" aria-label={t('coord.form')}>
-      {field('lat', t('coord.lat'), lat, setLat, fmtNum(point.lat, 1))}
-      {field('lon', t('coord.lon'), lon, setLon, fmtNum(point.lon, 1))}
+      {field('lat', t('coord.lat'), lat, setLat, t('coord.example', { v: fmtNum(point.lat, 1) }))}
+      {field('lon', t('coord.lon'), lon, setLon, t('coord.example', { v: fmtNum(point.lon, 1) }))}
       <button
         type="submit"
         className="press mt-[22px] h-10 rounded-md border border-(--line-strong) px-4 text-[14px] font-medium transition-colors hover:bg-(--track)"

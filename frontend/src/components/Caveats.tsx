@@ -1,6 +1,6 @@
-import { VERDICTS, verdictOf } from '../engine/dimensions'
+import { verdictOf } from '../engine/dimensions'
 import { useT } from '../i18n'
-import { fmtCoord, fmtVal } from '../lib/format'
+import { fmtCoord } from '../lib/format'
 import { placeTitle } from '../lib/labels'
 import { resultDims, targetBodyOf, useCandidate, useStore } from '../store/useStore'
 
@@ -41,26 +41,6 @@ export default function Caveats({ compact = false }: { compact?: boolean }) {
       </p>
 
       <ul className={`mt-5 grid gap-x-10 border-t border-(--line) ${compact ? '' : 'md:grid-cols-2'}`}>
-        {weak.map(({ d, best, w, k }) => (
-          <li key={d.key} className="flex gap-3 border-b border-(--line) py-4 text-[16px] leading-relaxed">
-            <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full" style={{ background: VERDICTS[k].color }} aria-hidden />
-            <span>
-              <span className="font-medium">
-                {d.name}: {t(`verdict.${k}`).toLowerCase()}.
-              </span>{' '}
-              <span className="num text-(--muted)">
-                {t('caveats.row', {
-                  src: fmtVal(d, best.src),
-                  from: src,
-                  match: fmtVal(d, w.match),
-                  place,
-                  diff: fmtVal(d, w.diff),
-                  tol: fmtVal(d, best.tol ?? d.tol),
-                })}
-              </span>
-            </span>
-          </li>
-        ))}
         {result.caveats.map((c) => (
           <li key={c} className="flex gap-3 border-b border-(--line) py-4 text-[16px] leading-relaxed text-(--muted)">
             <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-(--line-strong)" aria-hidden />

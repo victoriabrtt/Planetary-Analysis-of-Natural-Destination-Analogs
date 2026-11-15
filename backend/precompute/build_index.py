@@ -238,6 +238,82 @@ def earth_names(lat: np.ndarray, lon: np.ndarray, lang: str = "es") -> tuple[np.
     return idx, names
 
 
+# ───────────────────────────── Luna/Marte: nomenclatura IAU ─────────────────────────────
+
+# Rasgos que no sirven como nombre de lugar: cráteres satélite ("Tycho A"), sitios de alunizaje.
+IAU_SKIP_TYPES = {"Satellite Feature", "Astronaut-named features", "Landing site name", "Landing Site Name"}
+IAU_MIN_DIAM_KM = 5.0
+IAU_NEAR_KM = 150.0  # "cerca de X" si el borde del rasgo queda a menos de esto
+
+
+def _iau_label(row: dict, lang: str, near: bool) -> str:
+    """'Cráter Gale' / 'Gale crater'; los demás rasgos ya traen su descriptor latino ('Mare Imbrium')."""
+    name = " ".join((row["name"] or row["clean_name"]).split())  # "name" trae los diacríticos; sin dobles espacios
+    crater = row["type"].startswith("Crater")
+    if lang == "es":
+        base = f"cráter {name}" if crater else name
+        return (f"Cerca del {base}" if crater else f"Cerca de {base}") if near else (base[0].upper() + base[1:])
+    base = f"{name} crater" if crater else name
+    return f"Near {base}" if near else base
+
+
+def planetary_names(body: str, lat: np.ndarray, lon: np.ndarray, lang: str) -> tuple[np.ndarray, list[str]]:
+    """Nombre IAU para cada celda: el rasgo más específico (más chico) que la contiene; si no,
+    "cerca de" el rasgo cuyo borde esté a menos de IAU_NEAR_KM; si no, sin nombre (la UI muestra
+    coordenadas). Fuente: Gazetteer of Planetary Nomenclature (USGS/IAU)."""
+    from .dbf import read_dbf
+    from .descriptors import RADIUS_M
+
+    B = body.upper()
+    rows = [
+        r
+        for r in read_dbf(RAW / f"iau_{B}" / f"{B}_nomenclature_center_pts.dbf")
+        if r["type"] not in IAU_SKIP_TYPES and (r["diameter"] or 0) >= IAU_MIN_DIAM_KM
+    ]
+    R = RADIUS_M[body] / 1000
+    flat = np.radians([r["center_lat"] for r in rows])
+    flon = np.radians([((r["center_lon"] + 180) % 360) - 180 for r in rows])
+    frad = np.array([r["diameter"] / 2 for r in rows])
+    fxyz = np.stack([np.cos(flat) * np.cos(flon), np.cos(flat) * np.sin(flon), np.sin(flat)], 1)
+    la, lo = np.radians(lat), np.radians(lon)
+    cxyz = np.stack([np.cos(la) * np.cos(lo), np.cos(la) * np.sin(lo), np.sin(la)], 1)
+
+    best_in = np.full(lat.size, -1)
+    best_in_r = np.full(lat.size, np.inf)
+    best_near = np.full(lat.size, -1)
+    best_near_d = np.full(lat.size, np.inf)
+    for s0 in range(0, len(rows), 64):
+        sl = slice(s0, s0 + 64)
+        d = np.arccos(np.clip(cxyz @ fxyz[sl].T, -1, 1)) * R  # (N, 64) km
+        edge = d - frad[sl][None, :]
+        inside = edge <= 0
+        r_in = np.where(inside, frad[sl][None, :], np.inf)
+        j = np.argmin(r_in, axis=1)
+        rj = r_in[np.arange(lat.size), j]
+        upd = rj < best_in_r
+        best_in[upd], best_in_r[upd] = s0 + j[upd], rj[upd]
+        e = np.where(inside, np.inf, edge)
+        k = np.argmin(e, axis=1)
+        ek = e[np.arange(lat.size), k]
+        upd = ek < best_near_d
+        best_near[upd], best_near_d[upd] = s0 + k[upd], ek[upd]
+
+    table: dict[str, int] = {"": 0}
+    idx = np.zeros(lat.size, np.int32)
+    for i in range(lat.size):
+        if best_in[i] >= 0:
+            name = _iau_label(rows[best_in[i]], lang, near=False)
+        elif best_near[i] >= 0 and best_near_d[i] <= IAU_NEAR_KM:
+            name = _iau_label(rows[best_near[i]], lang, near=True)
+        else:
+            name = ""
+        idx[i] = table.setdefault(name, len(table))
+    names = [""] * len(table)
+    for k, v in table.items():
+        names[v] = k
+    return idx, names
+
+
 # ───────────────────────────── Build ─────────────────────────────
 
 
@@ -285,6 +361,15 @@ def build(body: str) -> dict:
         cell_km=np.float64(CELL_KM),
         source=np.array(raster.source),
     )
+    if body in ("moon", "mars") and (RAW / f"iau_{body.upper()}").is_dir():
+        log("  nombrando celdas (nomenclatura IAU)")
+        for lang, suffix in (("es", ""), ("en", "_en")):
+            name_idx, names = planetary_names(body, lat[rows], lon[rows], lang)
+            payload[f"name_idx{suffix}"] = name_idx
+            payload[f"names{suffix}"] = np.array(names)
+            if lang == "es":
+                named = float((name_idx > 0).mean())
+                log(f"    {named * 100:.0f}% de las celdas con nombre IAU")
     if body == "earth":
         log("  nombrando celdas (Natural Earth + sitios curados)")
         for lang, suffix in (("es", ""), ("en", "_en")):

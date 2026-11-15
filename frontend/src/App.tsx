@@ -70,9 +70,6 @@ export default function App() {
                 <h2 id="dims-title" className="display text-[24px]">
                   {t('dims.title')}
                 </h2>
-                <p className="mt-1 max-w-[52rem] text-[16px] text-(--muted)">
-                  {t('dims.legend', { src: srcName || t('dims.source'), tgt: candName || t('dims.target') })}
-                </p>
                 <div className={`mt-5 grid gap-4 sm:grid-cols-2 [&>*]:min-w-0 ${dims.length % 4 === 0 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
                   {dims.map((d) => {
                     const best = result.perDim[d.key]

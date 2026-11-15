@@ -272,6 +272,16 @@ export function TargetPanel() {
           result &&
           cand && (
             <div className="flex flex-col gap-3">
+              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-(--muted) sm:hidden" aria-label={t('target.legend')}>
+                <li className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full border-2 border-dashed border-(--muted)" aria-hidden /> {t('target.legendOrigin', { body: bodyThe })}
+                </li>
+                {!!qual?.count && (
+                  <li className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#9cc7ff]" aria-hidden /> {t('target.legendQual')}
+                  </li>
+                )}
+              </ul>
               {cand.rank > 1 && (
                 <p className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[14px]">
                   <span className="text-(--muted)">{t('target.viewing', { n: cand.rank })}</span>
@@ -285,8 +295,9 @@ export function TargetPanel() {
                   const w = cand.perDim[d.key] ?? result.perDim[d.key]
                   const k = verdictOf(w.score)
                   const on = activeDim === d.key
+                  const pinned = pinnedDim === d.key
                   return (
-                    <li key={d.key} className="border-b border-(--line)">
+                    <li key={d.key} className={`relative border-b border-(--line) ${pinned ? 'rounded-md bg-(--track)' : ''}`}>
                       <button
                         onMouseEnter={() => setHoveredDim(d.key)}
                         onMouseLeave={() => setHoveredDim(null)}
@@ -294,7 +305,7 @@ export function TargetPanel() {
                         aria-pressed={pinnedDim === d.key}
                         className={`press flex w-full items-center justify-between gap-3 py-2 text-left text-[14px] transition-opacity ${
                           activeDim && !on ? 'opacity-50' : ''
-                        }`}
+                        } ${pinned ? 'pl-2 pr-8 font-medium' : ''}`}
                       >
                         <span className="flex min-w-0 items-center gap-2">
                           <span className="h-2 w-2 shrink-0 rounded-[2px] ring-1 ring-(--line-strong)" style={{ background: d.color }} aria-hidden />
@@ -308,6 +319,17 @@ export function TargetPanel() {
                           <span className="text-(--fg)">{t(`verdict.${k}`)}</span>
                         </span>
                       </button>
+                      {pinned && (
+                        <button
+                          onClick={() => togglePinnedDim(d.key)}
+                          aria-label={t('target.unpin', { dim: d.name.toLowerCase() })}
+                          className="press absolute right-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded text-(--muted) hover:text-(--fg)"
+                        >
+                          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+                            <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          </svg>
+                        </button>
+                      )}
                     </li>
                   )
                 })}
@@ -332,7 +354,7 @@ export function TargetPanel() {
           ariaLabel={o ? t('target.globe', { body: bodyName, place: placeTitle(o.name, t) }) : t('target.globeEmpty', { body: bodyName })}
         />
         {result && (
-          <ul className="pointer-events-none absolute bottom-3 left-4 flex flex-col gap-1 text-[13px] text-(--muted)" aria-label={t('target.legend')}>
+          <ul className="pointer-events-none absolute bottom-3 left-4 hidden flex-col gap-1 text-[13px] text-(--muted) sm:flex" aria-label={t('target.legend')}>
             <li className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full border-2 border-dashed border-(--muted)" aria-hidden />{' '}
               {t('target.legendOrigin', { body: bodyThe })}

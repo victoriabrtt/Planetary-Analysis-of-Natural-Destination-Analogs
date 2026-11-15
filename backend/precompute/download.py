@@ -8,6 +8,7 @@ Descarga de datos crudos → backend/data/raw/
 
 Fuentes (todas públicas, sin key salvo OpenTopography):
   Luna   LOLA LDEM_16 (16 px/°, ~1,9 km/px)            imbrium.mit.edu (PDS Geosciences / MIT)
+  Luna/Marte  nomenclatura IAU (USGS Gazetteer of Planetary Nomenclature): nombres de las celdas
   Marte  MOLA MEGDR megt90n000fb (32 px/°, ~1,85 km/px)  pds-geosciences.wustl.edu
   Tierra ETOPO 2022 60″ surface (~1,85 km/px)           NOAA NCEI. En tierra firme deriva de Copernicus GLO-30.
          Natural Earth 10m land + lakes (máscara de océano y lagos), regiones geográficas y países (nombres)
@@ -29,15 +30,19 @@ import requests
 RAW = Path(__file__).resolve().parents[1] / "data" / "raw"
 
 NE = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson"
+# Gazetteer of Planetary Nomenclature (USGS/IAU): nombres oficiales de la Luna y Marte.
+IAU = "https://asc-planetarynames-data.s3.us-west-2.amazonaws.com"
 
 SOURCES: dict[str, list[tuple[str, str]]] = {
     "moon": [
         ("https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/LDEM_16.IMG", "LDEM_16.IMG"),
         ("https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/LDEM_16.LBL", "LDEM_16.LBL"),
+        (f"{IAU}/MOON_nomenclature_center_pts.zip", "MOON_nomenclature_center_pts.zip"),
     ],
     "mars": [
         ("https://pds-geosciences.wustl.edu/mgs/mgs-m-mola-5-megdr-l3-v1/mgsl_300x/meg032/megt90n000fb.img", "megt90n000fb.img"),
         ("https://pds-geosciences.wustl.edu/mgs/mgs-m-mola-5-megdr-l3-v1/mgsl_300x/meg032/megt90n000fb.lbl", "megt90n000fb.lbl"),
+        (f"{IAU}/MARS_nomenclature_center_pts.zip", "MARS_nomenclature_center_pts.zip"),
     ],
     "earth": [
         (
@@ -81,6 +86,13 @@ def download(bodies: list[str]) -> None:
         print(f"[{body}]")
         for url, name in SOURCES[body]:
             fetch(url, RAW / name)
+            if name.endswith("_nomenclature_center_pts.zip"):
+                import zipfile
+
+                out = RAW / f"iau_{name.split('_')[0]}"
+                out.mkdir(exist_ok=True)
+                with zipfile.ZipFile(RAW / name) as z:
+                    z.extractall(out)
 
 
 def earth_tile(south: float, north: float, west: float, east: float, demtype: str = "COP90") -> Path:

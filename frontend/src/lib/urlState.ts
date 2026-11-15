@@ -72,7 +72,7 @@ export function startUrlSync() {
 
   const unsub = useStore.subscribe((st, prev) => {
     if (applying) return
-    const moved = st.point !== prev.point || st.mode !== prev.mode || st.body !== prev.body
+    const moved = st.point !== prev.point || st.mode !== prev.mode || st.body !== prev.body || st.profileId !== prev.profileId
     if (moved || st.profileId !== prev.profileId || st.lang !== prev.lang || st.inspectIdx !== prev.inspectIdx || st.pendingInspect !== prev.pendingInspect)
       write(snapshot(), moved)
   })

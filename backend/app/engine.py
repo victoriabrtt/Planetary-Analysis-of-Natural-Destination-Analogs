@@ -250,9 +250,10 @@ class Engine:
             n = str(names[name_idx[row]])
             if n:
                 return n  # las coordenadas van aparte (site.lat/lon); el front las muestra
-        # Luna/Marte sin nombre: referirla al sitio conocido más cercano ("Zona a 1.230 km de Tycho").
+        # Sin tabla de nombres (índices viejos): referirla al sitio conocido más cercano. Con nomenclatura
+        # IAU, una celda sin nombre devuelve coordenadas y el front la muestra como "Zona sin nombre oficial".
         fam = self.famous.get(body, [])
-        if fam and row >= 0:
+        if fam and row >= 0 and names is None:
             d, name = min((float(idx.dist_km(f["lat"], f["lon"], [row])[0]), self._fname(f, lang)) for f in fam)
             return TEXT[lang]["zone"].format(km=thousands(d, lang), name=name)
         return fmt_coord(lat, lon, lang)

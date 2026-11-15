@@ -69,7 +69,6 @@ function Scale({ dim, src, match }: { dim: Dimension; src: number; match: number
 export default function DimensionCard({ dim, best, winner, sourceName, winnerName, weight }: Props) {
   const t = useT()
   const setHoveredDim = useStore((s) => s.setHoveredDim)
-  const togglePinnedDim = useStore((s) => s.togglePinnedDim)
   const pinned = useStore((s) => s.pinnedDim) === dim.key
   const tol = best.tol ?? dim.tol
   const otherBest = best.site.name !== winnerName
@@ -78,7 +77,6 @@ export default function DimensionCard({ dim, best, winner, sourceName, winnerNam
     <article
       onMouseEnter={() => setHoveredDim(dim.key)}
       onMouseLeave={() => setHoveredDim(null)}
-      onClick={() => togglePinnedDim(dim.key)}
       aria-label={`${dim.name}: ${t(`verdict.${verdictOf(winner.score)}`)}. ${sourceName} ${fmtVal(dim, best.src)}, ${winnerName} ${fmtVal(dim, winner.match)}.`}
       className={`card flex min-w-0 flex-col p-6 hover:border-(--line-strong) hover:bg-(--card-hover) ${pinned ? 'border-(--line-strong) bg-(--card-hover)' : ''}`}
     >
@@ -106,9 +104,12 @@ export default function DimensionCard({ dim, best, winner, sourceName, winnerNam
           <span className="[overflow-wrap:anywhere]">{winnerName}</span>
         </dt>
         <dd className="tnum text-right">{fmtVal(dim, winner.match)}</dd>
-        <dt className="text-(--muted)">{t('card.diff')}</dt>
+        <dt className="flex items-center gap-2 text-(--muted)">
+          <span className="h-2.5 w-3.5 shrink-0 rounded-sm bg-(--track) ring-1 ring-(--line-strong) ring-inset" aria-hidden />
+          {t('card.diff')}
+        </dt>
         <dd className="tnum text-right">
-          {fmtVal(dim, winner.diff)} <span className="text-(--muted)">{t('card.of')} ±{fmtVal(dim, tol)}</span>
+          {fmtVal(dim, winner.diff)} <span className="text-(--muted)">· {t('card.tolerance')} ±{fmtVal(dim, tol)}</span>
         </dd>
       </dl>
 

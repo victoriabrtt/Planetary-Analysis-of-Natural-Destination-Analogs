@@ -48,6 +48,7 @@ const es = {
   'coord.lat': 'Latitud',
   'coord.lon': 'Longitud',
   'coord.go': 'Ir al punto',
+  'coord.example': 'ej. {v}',
   'coord.latErr': 'Escribí una latitud entre −90 y 90.',
   'coord.lonErr': 'Escribí una longitud entre −180 y 180.',
 
@@ -67,6 +68,7 @@ const es = {
   'target.commonTitle': 'Terreno común en {body}',
   'target.example': 'por ejemplo: {place}',
   'target.measures': 'Cómo se compara en cada medida',
+  'target.unpin': 'Quitar el resaltado de {dim}',
   'target.diff': 'dif.',
   'target.legend': 'Leyenda del globo',
   'target.legendOrigin': 'Origen proyectado sobre {body}',
@@ -83,6 +85,7 @@ const es = {
   'reading.withinTol': 'dentro de su tolerancia',
   'reading.awayIn': '; se aleja en',
   'reading.breaksIn': '; se rompe en',
+  'reading.tradeoff': 'Ningún lugar reproduce la {dim} de {src}, así que el resultado prioriza las demás medidas; lo más cercano en {dim} es {place} ({value}).',
   'reading.commonLead': 'Es un terreno común: el {share} de {body} reproduce',
   'reading.forExample': 'Por ejemplo,',
 
@@ -104,6 +107,7 @@ const es = {
   'dims.source': 'el origen',
   'dims.target': 'el análogo',
   'card.diff': 'Diferencia',
+  'card.tolerance': 'tolerancia',
   'card.of': 'de',
   'card.bestOnly': 'Mejor solo en {dim}:',
   'card.noneCloser': 'Ningún lugar se acerca más en esta medida.',
@@ -182,6 +186,7 @@ const en: Record<Key, string> = {
   'coord.lat': 'Latitude',
   'coord.lon': 'Longitude',
   'coord.go': 'Go to point',
+  'coord.example': 'e.g. {v}',
   'coord.latErr': 'Enter a latitude between −90 and 90.',
   'coord.lonErr': 'Enter a longitude between −180 and 180.',
 
@@ -201,6 +206,7 @@ const en: Record<Key, string> = {
   'target.commonTitle': 'Common terrain on {body}',
   'target.example': 'for example: {place}',
   'target.measures': 'How it compares on each measure',
+  'target.unpin': 'Clear the {dim} highlight',
   'target.diff': 'diff.',
   'target.legend': 'Globe legend',
   'target.legendOrigin': 'Origin projected onto {body}',
@@ -217,6 +223,7 @@ const en: Record<Key, string> = {
   'reading.withinTol': 'within tolerance',
   'reading.awayIn': '; it drifts on',
   'reading.breaksIn': '; it breaks on',
+  'reading.tradeoff': 'No place reproduces the {dim} of {src}, so the result favours the other measures; the closest on {dim} is {place} ({value}).',
   'reading.commonLead': 'Common terrain: {share} of {body} reproduces',
   'reading.forExample': 'For example,',
 
@@ -238,6 +245,7 @@ const en: Record<Key, string> = {
   'dims.source': 'the origin',
   'dims.target': 'the analog',
   'card.diff': 'Difference',
+  'card.tolerance': 'tolerance',
   'card.of': 'of',
   'card.bestOnly': 'Best on {dim} alone:',
   'card.noneCloser': 'No place comes closer on this measure.',

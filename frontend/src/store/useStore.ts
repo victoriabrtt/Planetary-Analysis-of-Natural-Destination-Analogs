@@ -157,7 +157,7 @@ export const useStore = create<State>((set, get) => ({
     const id = ++reqId
     controller?.abort()
     controller = new AbortController()
-    set({ loading: true, error: null, errorNearest: null, inspectIdx: null })
+    set({ loading: true, error: null, errorNearest: null, inspectIdx: null, pinnedDim: null, hoveredDim: null })
     try {
       const result = await matchAnalogs(
         {
