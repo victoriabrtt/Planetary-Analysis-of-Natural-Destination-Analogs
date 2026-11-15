@@ -15,7 +15,9 @@ export default function Reading() {
   const cand = useCandidate()
   if (!result || !cand) return null
 
-  const src = result.source.name ? placeTitle(result.source.name, t) : fmtCoord(result.source.lat, result.source.lon)
+  const raw = result.source.name ? placeTitle(result.source.name, t) : fmtCoord(result.source.lat, result.source.lon)
+  // A mitad de frase, "Zona a 962 km de Tycho" va en minúscula ("las 4 medidas de zona a 962 km…").
+  const src = /^(Zona|Area) /.test(raw) ? raw[0].toLowerCase() + raw.slice(1) : raw
   const ds = resultDims(dims, result)
   const q = qualify(cand.score, cand.perDim, ds)
   const names = (xs: typeof ds) => listJoin(xs.map((d) => d.name.toLowerCase()), lang)

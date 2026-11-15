@@ -10,6 +10,7 @@ interface UrlQuery {
   lon: number
   profileId: string
   lang: 'es' | 'en'
+  inspect: number | null
 }
 
 function read(): Partial<UrlQuery> {
@@ -29,11 +30,12 @@ function read(): Partial<UrlQuery> {
     lon: lon != null && Math.abs(lon) <= 180 ? lon : undefined,
     profileId: h.get('p') ?? undefined,
     lang: h.get('l') === 'en' || h.get('l') === 'es' ? (h.get('l') as 'es' | 'en') : undefined,
+    inspect: num('i') != null ? Math.round(num('i')!) - 1 : null,
   }
 }
 
 function write(q: UrlQuery, push: boolean) {
-  const hash = `#m=${q.mode}&b=${q.body}&lat=${q.lat.toFixed(3)}&lon=${q.lon.toFixed(3)}&p=${q.profileId}&l=${q.lang}`
+  const hash = `#m=${q.mode}&b=${q.body}&lat=${q.lat.toFixed(3)}&lon=${q.lon.toFixed(3)}&p=${q.profileId}&l=${q.lang}${q.inspect ? `&i=${q.inspect + 1}` : ''}`
   if (hash === window.location.hash) return
   if (push) window.history.pushState(null, '', hash)
   else window.history.replaceState(null, '', hash)
@@ -49,33 +51,48 @@ export function startUrlSync() {
     point: q.lat != null && q.lon != null ? { lat: q.lat, lon: q.lon } : s.point,
     profileId: q.profileId ?? s.profileId,
     lang: q.lang ?? s.lang,
+    pendingInspect: q.inspect ?? null,
   })
 
   let applying = false
   const snapshot = (): UrlQuery => {
     const st = useStore.getState()
-    return { mode: st.mode, body: st.body, lat: st.point.lat, lon: st.point.lon, profileId: st.profileId, lang: st.lang }
+    return {
+      mode: st.mode,
+      body: st.body,
+      lat: st.point.lat,
+      lon: st.point.lon,
+      profileId: st.profileId,
+      lang: st.lang,
+      // Mientras el resultado no llega, el candidato pedido por la URL sigue pendiente: no se pierde.
+      inspect: st.inspectIdx ?? st.pendingInspect,
+    }
   }
   write(snapshot(), false)
 
   const unsub = useStore.subscribe((st, prev) => {
     if (applying) return
     const moved = st.point !== prev.point || st.mode !== prev.mode || st.body !== prev.body
-    if (moved || st.profileId !== prev.profileId || st.lang !== prev.lang) write(snapshot(), moved)
+    if (moved || st.profileId !== prev.profileId || st.lang !== prev.lang || st.inspectIdx !== prev.inspectIdx || st.pendingInspect !== prev.pendingInspect)
+      write(snapshot(), moved)
   })
 
   const onPop = () => {
     const r = read()
     const st = useStore.getState()
+    const langChanged = r.lang != null && r.lang !== st.lang
     applying = true
     useStore.setState({
       mode: r.mode ?? st.mode,
       body: r.body ?? st.body,
       point: r.lat != null && r.lon != null ? { lat: r.lat, lon: r.lon } : st.point,
       profileId: r.profileId ?? st.profileId,
+      lang: r.lang ?? st.lang,
+      pendingInspect: r.inspect ?? null,
     })
     applying = false
-    void useStore.getState().run()
+    // Si cambió el idioma, init vuelve a leer la meta (nombres de medidas y perfiles) antes de calcular.
+    void (langChanged ? useStore.getState().init() : useStore.getState().run())
   }
   window.addEventListener('popstate', onPop)
   return () => {

@@ -94,7 +94,8 @@ const es = {
   'actions.csv': 'Descargar ranking (CSV)',
 
   'ranking.title': 'Otros lugares parecidos',
-  'ranking.hint': 'Tocá uno para compararlo en el panel y en el globo.',
+  'ranking.hint': 'Elegí uno para compararlo en el panel y en el globo.',
+  'ranking.allBreak': 'Todos se rompen en {dims}: ningún lugar de {body} lo reproduce.',
   'ranking.near': 'a {km} km del n.º {n}',
   'ranking.breaks': 'se rompe en {dims}',
 
@@ -121,6 +122,8 @@ const es = {
   'method.p2': 'En cada medida, la cercanía es 100 % si los valores son iguales y baja a medida que la diferencia se acerca a su tolerancia:',
   'method.p3': 'La cercanía global promedia las medidas con los pesos del perfil. Veredicto: Fuerte desde 75 %, Moderado desde 50 %, Débil desde 25 %; debajo, se rompe. Si alguna medida se rompe, el veredicto lo aclara.',
   'method.p4': 'Además se cuenta cuánta superficie califica como análogo fuerte: así se distingue un análogo raro de un terreno común.',
+  'method.scale': 'La escala es de celdas de ~20 km sobre modelos de elevación de ~1,9 km/px: no captura rocas, regolito ni detalle de metros.',
+  'method.illum': 'La iluminación es el ángulo mínimo de incidencia del sol: |latitud| menos la inclinación del eje (Luna 1,5°, Tierra 23,4°, Marte 25,2°). Un valor alto es sol rasante; 0° es sol alto. No considera la orientación de cada ladera.',
   'method.formula': 'cercanía = exp(−(|a − b| / tolerancia)²)',
   'csv.file': 'analogos',
   'csv.head': 'origen,origen_cuerpo,origen_lat,origen_lon,puesto,lugar,lat,lon,cercania_pct',
@@ -225,7 +228,8 @@ const en: Record<Key, string> = {
   'actions.csv': 'Download ranking (CSV)',
 
   'ranking.title': 'Other similar places',
-  'ranking.hint': 'Tap one to compare it in the panel and on the globe.',
+  'ranking.hint': 'Pick one to compare it in the panel and on the globe.',
+  'ranking.allBreak': 'All of them break on {dims}: no place on {body} reproduces it.',
   'ranking.near': '{km} km from #{n}',
   'ranking.breaks': 'breaks on {dims}',
 
@@ -242,9 +246,9 @@ const en: Record<Key, string> = {
 
   'caveats.title': 'Where the analogy breaks',
   'caveats.allOk': 'On terrain, {place} reproduces all {n} measures of {src} within tolerance. What no place on {body} can reproduce:',
-  'caveats.some': '{place} drifts from {src} on {count} of terrain, and there are things no place on {body} reproduces:',
-  'caveats.one': 'one measure',
-  'caveats.many': '{n} measures',
+  'caveats.some': '{place} drifts from {src} on {count}, and there are things no place on {body} reproduces:',
+  'caveats.one': 'one terrain measure',
+  'caveats.many': '{n} terrain measures',
   'caveats.row': '{src} at {from} against {match} at {place}: a difference of {diff}, with a tolerance of ±{tol}.',
 
   'method.title': 'How it is calculated',
@@ -252,6 +256,8 @@ const en: Record<Key, string> = {
   'method.p2': 'For each measure, closeness is 100% when the values match and drops as the difference approaches its tolerance:',
   'method.p3': 'Overall closeness averages the measures with the profile weights. Verdict: Strong from 75%, Moderate from 50%, Weak from 25%; below that, it breaks. If any measure breaks, the verdict says so.',
   'method.p4': 'It also counts how much surface qualifies as a strong analog, which tells a rare analog from common terrain.',
+  'method.scale': 'The scale is ~20 km cells over elevation models of ~1.9 km/px: it does not capture rocks, regolith or metre-scale detail.',
+  'method.illum': 'Illumination is the minimum solar incidence angle: |latitude| minus the axial tilt (Moon 1.5°, Earth 23.4°, Mars 25.2°). A high value is a low, grazing sun; 0° is a high sun. It ignores the orientation of each slope.',
   'method.formula': 'closeness = exp(−(|a − b| / tolerance)²)',
   'csv.file': 'analogs',
   'csv.head': 'source,source_body,source_lat,source_lon,rank,place,lat,lon,closeness_pct',

@@ -69,7 +69,8 @@ function Scale({ dim, src, match }: { dim: Dimension; src: number; match: number
 export default function DimensionCard({ dim, best, winner, sourceName, winnerName, weight }: Props) {
   const t = useT()
   const setHoveredDim = useStore((s) => s.setHoveredDim)
-  const hoveredDim = useStore((s) => s.hoveredDim)
+  const togglePinnedDim = useStore((s) => s.togglePinnedDim)
+  const pinned = useStore((s) => s.pinnedDim) === dim.key
   const tol = best.tol ?? dim.tol
   const otherBest = best.site.name !== winnerName
 
@@ -77,14 +78,14 @@ export default function DimensionCard({ dim, best, winner, sourceName, winnerNam
     <article
       onMouseEnter={() => setHoveredDim(dim.key)}
       onMouseLeave={() => setHoveredDim(null)}
-      onClick={() => setHoveredDim(hoveredDim === dim.key ? null : dim.key)}
+      onClick={() => togglePinnedDim(dim.key)}
       aria-label={`${dim.name}: ${t(`verdict.${verdictOf(winner.score)}`)}. ${sourceName} ${fmtVal(dim, best.src)}, ${winnerName} ${fmtVal(dim, winner.match)}.`}
-      className="card flex min-w-0 flex-col p-6 hover:border-(--line-strong) hover:bg-(--card-hover)"
+      className={`card flex min-w-0 flex-col p-6 hover:border-(--line-strong) hover:bg-(--card-hover) ${pinned ? 'border-(--line-strong) bg-(--card-hover)' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="flex items-center gap-2 text-[17px] font-medium">
-            <span className="h-2.5 w-2.5 shrink-0 rounded-[2px]" style={{ background: dim.color }} aria-hidden />
+            <span className="h-2.5 w-2.5 shrink-0 rounded-[2px] ring-1 ring-(--line-strong)" style={{ background: dim.color }} aria-hidden />
             {dim.name}
           </h3>
           <p className="mt-1 text-[14px] leading-snug text-(--muted)">{dim.hint}</p>

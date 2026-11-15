@@ -402,9 +402,7 @@ def caveats(source_body: str, target_body: str, cell_km: float, lang: str = "es"
         T["cav_gravity"].format(g=T["gravity"].get(off, "")),
         T["cav_atmos"].format(a=T["atmos"].get(off, "")),
         T["cav_radiation"],
-        T["cav_scale"].format(km=f"{cell_km:g}"),
-        T["cav_illum"],
-    ]
+    ]  # las notas de método (escala, definición de iluminación) viven en "Cómo se calcula" del front
 
 
 def fmt_coord(lat: float, lon: float, lang: str = "es") -> str:

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useT } from '../i18n'
 import { fmtNum } from '../lib/format'
 import { useStore } from '../store/useStore'
+import { revealAnswer } from '../lib/reveal'
 
 const parse = (v: string) => {
   const n = Number(v.trim().replace(',', '.'))
@@ -42,6 +43,7 @@ export default function CoordForm() {
     if (next.lon) return lonRef.current?.focus()
     submitted.current = { lat: la!, lon: lo! }
     selectPoint(la!, lo!)
+    setTimeout(() => revealAnswer(true), 350)
   }
 
   const field = (id: 'lat' | 'lon', label: string, value: string, set: (v: string) => void, ph: string) => (

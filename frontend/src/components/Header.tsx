@@ -44,8 +44,6 @@ export default function Header() {
           <span className="kicker hidden sm:inline">· NASA Space Apps 2026</span>
       </div>
 
-      {/* Un solo botón de tema: en pantallas chicas queda en la fila del logo y los controles bajan. */}
-      <div className="order-2 md:order-3">{themeButton}</div>
 
       <div className="order-3 flex w-full flex-wrap items-center gap-2 md:order-2 md:ml-auto md:w-auto">
         <Segmented<Mode>
@@ -79,6 +77,9 @@ export default function Header() {
           options={LANGS.map((l) => ({ value: l.value, label: <span lang={l.value}>{l.label}</span>, title: l.name }))}
         />
       </div>
+
+      {/* Un solo botón de tema, último en el orden de tabulación; en pantallas chicas sube a la fila del logo. */}
+      <div className="order-2 md:order-3">{themeButton}</div>
     </header>
   )
 }

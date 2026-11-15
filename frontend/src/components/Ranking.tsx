@@ -4,6 +4,7 @@ import { useT } from '../i18n'
 import { fmtCoord, pctScore } from '../lib/format'
 import { rankLabels } from '../lib/labels'
 import { listJoin, qualify } from '../lib/verdict'
+import { revealAnswer } from '../lib/reveal'
 import { spring } from '../lib/motion'
 import { targetBodyOf, useStore } from '../store/useStore'
 
@@ -23,12 +24,13 @@ export default function Ranking() {
 
   const choose = (i: number) => {
     setInspect(i)
-    // En pantallas angostas el globo queda muy arriba: lo traemos a la vista.
-    if (window.matchMedia('(max-width: 1023px)').matches) {
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      document.getElementById('analogo')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-    }
+    revealAnswer() // el panel que cambia queda arriba: se lo trae a la vista (desktop y mobile)
   }
+  const shown = dims.filter((d) => result?.perDim[d.key])
+  const qs = ranking.map((r) => qualify(r.score, r.perDim ?? {}, shown))
+  // Si todos los candidatos se rompen en las mismas medidas, se dice una vez arriba y no en cada fila.
+  const keyOf = (xs: { key: string }[]) => xs.map((d) => d.key).join(',')
+  const shared = qs.length > 1 && qs[0].broken.length > 0 && qs.every((q) => keyOf(q.broken) === keyOf(qs[0].broken)) ? qs[0].broken : null
 
   return (
     <section aria-labelledby="ranking-title">
@@ -36,9 +38,15 @@ export default function Ranking() {
         {t('ranking.title')}
       </h2>
       <p className="mt-1 text-[16px] text-(--muted)">{t('ranking.hint')}</p>
+      {shared && (
+        <p className="mt-3 flex items-start gap-2 text-[15px]">
+          <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full" style={{ background: VERDICTS.broken.color }} aria-hidden />
+          {t('ranking.allBreak', { dims: listJoin(shared.map((d) => d.name.toLowerCase()), lang), body: t(`the.${tgt}`) })}
+        </p>
+      )}
       <ol className="mt-4 border-t border-(--line)">
         {ranking.map((r, i) => {
-          const q = qualify(r.score, r.perDim ?? {}, dims.filter((d) => result?.perDim[d.key]))
+          const q = qs[i]
           const k = q.k
           const active = i === current
           return (
@@ -54,7 +62,7 @@ export default function Ranking() {
                 <span className="min-w-0">
                   <span className={`block text-[16px] leading-snug [overflow-wrap:anywhere] ${active ? 'font-medium' : ''}`}>{labels[i]}</span>
                   <span className="tnum block text-[13px] text-(--muted)">{fmtCoord(r.site.lat, r.site.lon)}</span>
-                  {q.broken.length > 0 && (
+                  {q.broken.length > 0 && !shared && (
                     <span className="mt-0.5 flex items-center gap-1.5 text-[13px]">
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: VERDICTS.broken.color }} aria-hidden />
                       {t('ranking.breaks', { dims: listJoin(q.broken.map((d) => d.name.toLowerCase()), lang) })}

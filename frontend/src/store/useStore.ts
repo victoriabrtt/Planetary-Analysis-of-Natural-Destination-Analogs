@@ -25,7 +25,12 @@ interface State {
   error: string | null
   /** Punto con datos más cercano cuando el elegido no tiene (ej. océano). */
   errorNearest: { lat: number; lon: number; km: number } | null
+  /** Vista previa al pasar el mouse por una medida. */
   hoveredDim: DimKey | null
+  /** Medida fijada con un clic/toque (se mantiene hasta otro clic). Resaltado = vista previa ?? fijada. */
+  pinnedDim: DimKey | null
+  /** Puesto del ranking pedido por la URL, a aplicar cuando llegue el resultado. */
+  pendingInspect: number | null
   /** Puesto del ranking que se está mirando (null = el ganador). Cambia el panel, las cards y el globo. */
   inspectIdx: number | null
   theme: Theme
@@ -42,6 +47,7 @@ interface State {
   setProfile: (id: string) => void
   selectPoint: (lat: number, lon: number) => void
   setHoveredDim: (d: DimKey | null) => void
+  togglePinnedDim: (d: DimKey) => void
   setInspect: (i: number | null) => void
   toggleTheme: () => void
   setLang: (l: Lang) => void
@@ -77,6 +83,8 @@ export const useStore = create<State>((set, get) => ({
   error: null,
   errorNearest: null,
   hoveredDim: null,
+  pinnedDim: null,
+  pendingInspect: null,
   inspectIdx: null,
   theme: initialTheme,
   lang: startLang,
@@ -129,11 +137,12 @@ export const useStore = create<State>((set, get) => ({
     void get().run()
   },
   setHoveredDim: (hoveredDim) => set({ hoveredDim }),
+  togglePinnedDim: (d) => set({ pinnedDim: get().pinnedDim === d ? null : d }),
   setInspect: (i) => set({ inspectIdx: i && i > 0 ? i : null }),
   setLang: (lang) => {
     if (lang === get().lang) return
     localStorage.setItem('lang', lang)
-    set({ lang })
+    set({ lang, pendingInspect: get().inspectIdx }) // el candidato que se mira sobrevive al cambio de idioma
     void get().init() // textos del backend (dimensiones, perfiles, caveats, nombres) en el idioma nuevo
   },
   toggleTheme: () => {
@@ -162,7 +171,11 @@ export const useStore = create<State>((set, get) => ({
         },
         controller.signal,
       )
-      if (id === reqId) set({ result, loading: false })
+      if (id === reqId) {
+        const pending = get().pendingInspect
+        const idx = pending != null && pending > 0 && pending < (result.ranking?.length ?? 0) ? pending : null
+        set({ result, loading: false, inspectIdx: idx, pendingInspect: null })
+      }
     } catch (e) {
       if (id !== reqId || (e instanceof DOMException && e.name === 'AbortError')) return
       set({
@@ -210,4 +223,11 @@ export function useCandidate(): Candidate | null {
   const r = idx != null ? result.ranking?.[idx] : undefined
   if (r) return { site: r.site, score: r.score, rank: idx! + 1, perDim: r.perDim ?? fallbackDims }
   return { site: result.overall.site, score: result.overall.score, rank: 1, perDim: result.overall.perDim ?? fallbackDims }
+}
+
+/** Medida resaltada en el globo: la de la vista previa (hover) o, si no hay, la fijada. */
+export function useActiveDim(): DimKey | null {
+  const hovered = useStore((s) => s.hoveredDim)
+  const pinned = useStore((s) => s.pinnedDim)
+  return hovered ?? pinned
 }

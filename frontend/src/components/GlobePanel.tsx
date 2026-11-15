@@ -6,9 +6,10 @@ import { useT } from '../i18n'
 import { fmtCoord, fmtNum, fmtShare, fmtVal, pctScore } from '../lib/format'
 import { placeTitle, rankLabels } from '../lib/labels'
 import { listJoin, qualify } from '../lib/verdict'
+import { revealAnswer } from '../lib/reveal'
 import { spring } from '../lib/motion'
 import { useDelayedFlag } from '../lib/useDelayedFlag'
-import { resultDims, sourceBodyOf, targetBodyOf, useCandidate, useStore } from '../store/useStore'
+import { resultDims, sourceBodyOf, targetBodyOf, useActiveDim, useCandidate, useStore } from '../store/useStore'
 import AnimatedNumber from './AnimatedNumber'
 import CoordForm from './CoordForm'
 import GlobeView, { type Marker } from './GlobeView'
@@ -58,7 +59,15 @@ export function SourcePanel() {
   const body = useStore((s) => s.body)
   const point = useStore((s) => s.point)
   const result = useStore((s) => s.result)
-  const selectPoint = useStore((s) => s.selectPoint)
+  const select = useStore((s) => s.selectPoint)
+  // En pantallas angostas la respuesta queda debajo del globo de origen: después de elegir, se la muestra.
+  const selectPoint = useMemo(
+    () => (lat: number, lon: number) => {
+      select(lat, lon)
+      setTimeout(() => revealAnswer(true), 350)
+    },
+    [select],
+  )
   const src = sourceBodyOf(mode, body)
   const sites = knownSites(src)
   const activeSite = sites.find((s) => angularDist(s.lat, s.lon, point.lat, point.lon) < 0.01)
@@ -147,8 +156,10 @@ export function TargetPanel() {
   const mode = useStore((s) => s.mode)
   const body = useStore((s) => s.body)
   const result = useStore((s) => s.result)
-  const hoveredDim = useStore((s) => s.hoveredDim)
+  const activeDim = useActiveDim()
+  const pinnedDim = useStore((s) => s.pinnedDim)
   const setHoveredDim = useStore((s) => s.setHoveredDim)
+  const togglePinnedDim = useStore((s) => s.togglePinnedDim)
   const setInspect = useStore((s) => s.setInspect)
   const error = useStore((s) => s.error)
   const nearest = useStore((s) => s.errorNearest)
@@ -189,7 +200,6 @@ export function TargetPanel() {
   }, [result, dims, cand?.site.lat, cand?.site.lon, lang])
 
   const o = cand?.site
-  const toggleDim = (k: DimKey) => setHoveredDim(hoveredDim === k ? null : k)
   // Veredicto calificado (el mismo helper que usa el ranking): el promedio no esconde una medida que se rompe.
   const q = cand ? qualify(cand.score, cand.perDim, dims) : null
   const broken = q ? q.broken.map((d) => d.name.toLowerCase()) : []
@@ -239,17 +249,19 @@ export function TargetPanel() {
                 <span className="text-(--muted)">%</span>
               </span>
               {q?.qualified ? (
-                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-(--line) px-2.5 py-1 text-[14px] font-medium">
-                  <span className="h-2 w-2 rounded-full" style={{ background: VERDICTS.strong.color }} aria-hidden />
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-(--line) px-2.5 py-1 text-[14px] font-medium text-(--muted)">
                   {t('target.strongIn', { ok: q.ok, n: q.n })}
                 </span>
               ) : (
                 <VerdictBadge score={cand.score} size="md" />
               )}
               {broken.length > 0 && (
-                <span className="flex items-center gap-1.5 text-[13px]">
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: VERDICTS.broken.color }} aria-hidden />
-                  {t('target.breaksIn', { dims: listJoin(broken, lang) })}
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[14px] font-medium"
+                  style={{ borderColor: `${VERDICTS.broken.color}99`, background: `${VERDICTS.broken.color}1f` }}
+                >
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: VERDICTS.broken.color }} aria-hidden />
+                  {t('target.breaksIn', { dims: listJoin(broken, lang) }).replace(/^./, (c) => c.toUpperCase())}
                 </span>
               )}
               {cand.rank === 1 && rarity && <span className="text-[13px] text-(--muted)">{rarity}</span>}
@@ -272,20 +284,20 @@ export function TargetPanel() {
                 {dims.map((d) => {
                   const w = cand.perDim[d.key] ?? result.perDim[d.key]
                   const k = verdictOf(w.score)
-                  const on = hoveredDim === d.key
+                  const on = activeDim === d.key
                   return (
                     <li key={d.key} className="border-b border-(--line)">
                       <button
                         onMouseEnter={() => setHoveredDim(d.key)}
                         onMouseLeave={() => setHoveredDim(null)}
-                        onClick={() => toggleDim(d.key)}
-                        aria-pressed={on}
+                        onClick={() => togglePinnedDim(d.key)}
+                        aria-pressed={pinnedDim === d.key}
                         className={`press flex w-full items-center justify-between gap-3 py-2 text-left text-[14px] transition-opacity ${
-                          hoveredDim && !on ? 'opacity-50' : ''
+                          activeDim && !on ? 'opacity-50' : ''
                         }`}
                       >
                         <span className="flex min-w-0 items-center gap-2">
-                          <span className="h-2 w-2 shrink-0 rounded-[2px]" style={{ background: d.color }} aria-hidden />
+                          <span className="h-2 w-2 shrink-0 rounded-[2px] ring-1 ring-(--line-strong)" style={{ background: d.color }} aria-hidden />
                           <span className="truncate">{d.name}</span>
                         </span>
                         <span className="flex shrink-0 items-center gap-2 text-(--muted)">
@@ -311,7 +323,7 @@ export function TargetPanel() {
           arcs={arcs}
           rings={rings}
           dots={qual?.sample}
-          highlightDim={hoveredDim}
+          highlightDim={activeDim}
           focus={
             o && result
               ? { lat: o.lat, lon: o.lon, altitude: 2.1, key: `${tgt}:${o.name}:${o.lat}:${o.lon}:${result.source.lat}:${result.source.lon}` }
