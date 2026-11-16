@@ -40,8 +40,8 @@ export default function Header() {
     <header className="-mx-4 flex flex-wrap items-center justify-between gap-3 border-b border-(--line) px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       <div className="order-1 flex items-center gap-2.5">
           <Mark />
-          <span className="text-[20px] font-medium tracking-[-0.03em]">Analog Matcher</span>
-          <span className="kicker hidden sm:inline">· NASA Space Apps 2026</span>
+          <span className="text-[20px] font-medium tracking-[-0.03em]">The P.A.N.D.A Project</span>
+          <span className="kicker hidden sm:inline">· Planetary Analysis of Natural Destination Analogs</span>
       </div>
 
 
